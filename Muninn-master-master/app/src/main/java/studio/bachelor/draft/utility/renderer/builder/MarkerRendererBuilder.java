@@ -1,6 +1,8 @@
 package studio.bachelor.draft.utility.renderer.builder;
 
+import android.graphics.Bitmap;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ import studio.bachelor.draft.utility.renderer.primitive.Line;
 import studio.bachelor.draft.utility.renderer.primitive.Point;
 import studio.bachelor.draft.utility.renderer.primitive.Text;
 import studio.bachelor.draft.utility.renderer.MarkerRenderer;
+import studio.bachelor.muninn.Muninn;
 
 /**
  * Created by BACHELOR on 2016/02/25.
