@@ -5,9 +5,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -49,7 +51,9 @@ public class DraftRenderer implements Renderable {
     }
 
     public void setAbleToPaint(boolean b){ableToPaint = b;}
+
     public boolean getAbleToPaint(){return ableToPaint;}
+
     public Bitmap getBirdview() {
         return birdview;
     }
@@ -60,7 +64,7 @@ public class DraftRenderer implements Renderable {
         canvas.translate((float)translate.x, (float)translate.y);//位移
         canvas.scale(scale, scale);
         if(birdview != null)
-            canvas.drawBitmap(birdview, -birdview.getWidth() / 2, -birdview.getHeight() / 2, paint);
+            canvas.drawBitmap(birdview, null, new Rect(0, 0, birdview.getWidth(), birdview.getHeight()), paint);
 
         Path current_path = draft.getCurrentPath();
         if(current_path != null)
@@ -70,4 +74,27 @@ public class DraftRenderer implements Renderable {
         for (Path path : paths) //show all the gesture paths
             canvas.drawPath(path, pathPaint);
     }
+    public Bitmap getDraftBitmap() {//儲存畫上草稿線的圖
+             if (birdview != null) {
+                 Bitmap bmp = Bitmap.createBitmap(birdview.getWidth(), birdview.getHeight(), Bitmap.Config.ARGB_8888);
+                 Canvas tC = new Canvas(bmp);
+                 //將背景圖加入Canvas
+                 tC.drawBitmap(birdview, null, new Rect(0, 0, birdview.getWidth(), birdview.getHeight()), paint);
+                 //將全部繪製的路線加入Canvas
+                 List<Path> paths = draft.getPaths();
+                 for (Path path : paths) //show all the gesture paths
+                     tC.drawPath(path, pathPaint);
+                 Toast.makeText(Muninn.getContext(), "草稿線儲存成功", Toast.LENGTH_SHORT).show();
+                 return bmp;
+             } else if (draft.getPaths().isEmpty()) {
+                     return null;
+             } else {
+                 Bitmap bmp = Bitmap.createBitmap(birdview.getWidth(), birdview.getHeight(), Bitmap.Config.ARGB_8888);
+                 Canvas c = new Canvas(bmp);
+                 List<Path> paths = draft.getPaths();
+                 for (Path path : paths) //show all the gesture paths
+                     c.drawPath(path, pathPaint);
+                 return bmp;
+             }
+         }
 }

@@ -2,6 +2,8 @@ package studio.bachelor.draft.utility.renderer;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.Log;
 import android.view.View;
 
@@ -30,6 +32,8 @@ public class RendererManager {
     public static RendererManager getInstance() {
         return instance;
     }
+    private Bitmap bitmap;
+    private Paint paint = new Paint();
 
 
     public final List<Renderable> renderObjects = new LinkedList<Renderable>();
@@ -37,6 +41,9 @@ public class RendererManager {
 
     private RendererManager() {
 
+    }
+    public void setBitmap(Bitmap b){
+        bitmap = b;
     }
 
     public void addRenderer(final Renderable render_object) {
@@ -53,5 +60,14 @@ public class RendererManager {
             Log.d(TAG, "removeRenderer()");
         }
 
+    }
+
+    public Bitmap getLineDraft(){
+        Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas tC = new Canvas(bmp);
+        tC.drawBitmap(bitmap, null, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), paint);
+        for(Renderable r : renderObjects)
+            r.onDraw(tC);
+        return bmp;
     }
 }
