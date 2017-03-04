@@ -1,12 +1,9 @@
 package studio.bachelor.draft.utility.renderer;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -55,7 +52,6 @@ public class MarkerRenderer implements Renderable {
         for(Renderable primitive : primitives) {
             primitive.onDraw(canvas);
         }
-
         if(reference != null) {
             switch (reference.getSelectionState()) {
                 case SELECTING:

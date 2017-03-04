@@ -122,14 +122,8 @@ public class DraftDirector {
         return nextObjectID++;
     }
 
-    public void setBirdviewImageByUri(Uri uri) {//設定選取的圖片  尚未完成清除位置
+    public void setBirdviewImageByUri(Uri uri) {//設定選取的圖片
         signFiles.clear();
-        renderableMap.clear();
-        rendererManager.renderObjects.clear();
-        StepByStepRedo.clear();
-        StepByStepUndo.clear();
-        draft.layer.setScale(1);
-
         if(MD5EncoderThread != null)
             MD5EncoderThread.interrupt();
         //birdViewUri = uri;
@@ -144,7 +138,6 @@ public class DraftDirector {
         draftRenderer.setBirdview(birdview); //設定選取好的圖片
         draft.setWidth(birdview.getWidth()); //setting the width-size of draft according to the birdview.
         draft.setHeight(birdview.getHeight());
-        rendererManager.setBitmap(birdview);
     }
 
     public void setWidthAndHeight(float width, float height) {
@@ -154,6 +147,7 @@ public class DraftDirector {
     /*public void setToolboxRenderer(Position upper_left_corner, float width, float height) {
         toolboxRenderer = new ToolboxRenderer(toolbox, upper_left_corner, width, height);
     }*/
+
     public void createPathIfPathMode(Position position) { //curve
         if (tool == Toolbox.Tool.PATH_MODE) {
             draft.createPathIfPathMode(position);
@@ -1137,11 +1131,8 @@ public class DraftDirector {
                 final int BUFFER = 256;
                 WriteDOMFileToZIP(data_file, zip_stream, BUFFER);
 
-                final Bitmap bitmap = rendererManager.getLineDraft();
+                final Bitmap bitmap = draftRenderer.getBirdview();
                 WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, zip_directory);
-
-                final Bitmap dBitmap = draftRenderer.getDraftBitmap();
-                WriteBitmapToZIP("birdview_draft", dBitmap, zip_stream, BUFFER, zip_directory);
 
                 for(File file : signFiles) {
                     Bitmap sign_bitmap = BitmapFactory.decodeFile(file.getPath());

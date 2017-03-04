@@ -44,9 +44,7 @@ public class MuninnActivity extends AppCompatActivity {
 
         findViewById(R.id.select_photo).setOnClickListener(new OnClickListener() {//選擇影像
             public void onClick(View view) {//選擇照片
-                cleanAll();
                 switchToGallery();
-                Toast.makeText(getApplicationContext(), "請選擇照片", Toast.LENGTH_SHORT).show();
             }
         });
         findViewById(R.id.setting).setOnClickListener(new OnClickListener() {
@@ -58,6 +56,21 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//儲存至本地
                 DraftDirector.instance.exportToZip();
+                b = getScreenShot();
+                Date date = new Date();
+                SimpleDateFormat date_format = new SimpleDateFormat("yyyyMMddHHmmss");
+                String filename = date_format.format(date);
+                try {
+                    File file = new File(Environment.getExternalStorageDirectory() + "/zip_file", "B" +  filename + ".png");
+                    FileOutputStream output_stream = new FileOutputStream(file);
+                    b.compress(Bitmap.CompressFormat.PNG, 100, output_stream);
+                    output_stream.flush();
+                    output_stream.close();
+                    Toast.makeText(getApplicationContext(), "B", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
         });
         findViewById(R.id.sign).setOnClickListener(new OnClickListener() {
@@ -131,7 +144,6 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//刪除特定標線標籤
                 DraftDirector.instance.selectTool(Toolbox.Tool.DELETER);
                 current_mode.setImageResource(R.drawable.ic_delete_forever_black_48dp);
-                Toast.makeText(getApplicationContext(), "長按物件點移除", Toast.LENGTH_SHORT).show();
             }
         });
         findViewById(R.id.move_mode).setOnClickListener(new OnClickListener() {
@@ -175,9 +187,28 @@ public class MuninnActivity extends AppCompatActivity {
             }
         }
     }
-    
-    public void cleanAll(){
-        DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-        DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);
+    private Bitmap getScreenShot()
+    {
+        //藉由View來Cache全螢幕畫面後放入Bitmap
+        View mView = getWindow().getDecorView();
+        mView.setDrawingCacheEnabled(true);
+        mView.buildDrawingCache();
+        Bitmap mFullBitmap = mView.getDrawingCache();
+
+        //取得系統狀態列高度
+        Rect mRect = new Rect();
+        getWindow().getDecorView().getWindowVisibleDisplayFrame(mRect);
+        int mStatusBarHeight = mRect.top;
+
+        //取得手機螢幕長寬尺寸
+        int mPhoneWidth = getWindowManager().getDefaultDisplay().getWidth();
+        int mPhoneHeight = getWindowManager().getDefaultDisplay().getHeight();
+
+        //將狀態列的部分移除並建立新的Bitmap
+        Bitmap mBitmap = Bitmap.createBitmap(mFullBitmap, 0, mStatusBarHeight, mPhoneWidth, mPhoneHeight - mStatusBarHeight);
+        //將Cache的畫面清除
+        mView.destroyDrawingCache();
+
+        return mBitmap;
     }
 }
