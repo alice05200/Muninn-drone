@@ -66,6 +66,7 @@ public class RendererManager {
         Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas tC = new Canvas(bmp);
         tC.drawBitmap(bitmap, null, new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), paint);
+        tC.translate(bitmap.getWidth() / 2, bitmap.getHeight() / 2);
         for(Renderable r : renderObjects)
             r.onDraw(tC);
         return bmp;

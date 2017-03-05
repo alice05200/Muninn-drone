@@ -22,6 +22,8 @@ public class MotionHandler {
         return instance;
     }
     private static final MotionHandler instance = new MotionHandler();
+    private Toolbox.Tool tool;
+    private int DoubleTapFlag=0;
 
     private MotionHandler() {
 
@@ -83,6 +85,17 @@ public class MotionHandler {
                 break;
             case DOUBLE_TAP:
                 director.addMarker(position_first);
+                if (director.getTool() ==Toolbox.Tool.HAND_MOVE) {
+                    if(DoubleTapFlag==0){
+                        director.zoomDraft(1f);
+                        DoubleTapFlag=1;
+                }else{
+                        director.zoomDraft(-1f);
+                        DoubleTapFlag=0;
+                    }
+
+                }
+
                 break;
             case SINGLE_TAP:
                 //if(tool != null) {
@@ -95,9 +108,11 @@ public class MotionHandler {
                 break;
             case PINCH_IN: //放大，兩指拉開
                 director.zoomDraft(0.05f);
+                director.moveLayerStop();//避免放大縮小後圖亂跳
                 break;
             case PINCH_OUT: //縮小，兩指拉近
                 director.zoomDraft(-0.025f);
+                director.moveLayerStop();//避免放大縮小後圖亂跳
                 break;
             case FlING:
                 Log.d(TAG, "FlING");

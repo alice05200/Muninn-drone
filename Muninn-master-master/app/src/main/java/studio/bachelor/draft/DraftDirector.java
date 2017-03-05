@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -70,6 +71,7 @@ import studio.bachelor.muninn.Muninn;
 import studio.bachelor.muninn.MuninnActivity;
 import studio.bachelor.muninn.R;
 import studio.bachelor.utility.FTPUploader;
+import studio.bachelor.utility.SavePicture;
 
 /**
  * Created by BACHELOR on 2016/02/24.
@@ -122,7 +124,7 @@ public class DraftDirector {
         return nextObjectID++;
     }
 
-    public void setBirdviewImageByUri(Uri uri) {//設定選取的圖片  尚未完成清除位置
+    public void setBirdviewImageByUri(Uri uri) {//設定選取的圖片
         signFiles.clear();
         renderableMap.clear();
         rendererManager.renderObjects.clear();
@@ -145,6 +147,8 @@ public class DraftDirector {
         draft.setWidth(birdview.getWidth()); //setting the width-size of draft according to the birdview.
         draft.setHeight(birdview.getHeight());
         rendererManager.setBitmap(birdview);
+        Position screenCenter = new Position(0,0);
+        this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
     }
 
     public void setWidthAndHeight(float width, float height) {
@@ -590,6 +594,10 @@ public class DraftDirector {
             case DELETER:
                 markerType = null;
                 break;
+            case CLEAR_LINE:
+                renderableMap.clear();
+                rendererManager.renderObjects.clear();
+                break;
         }
     }
 
@@ -981,17 +989,63 @@ public class DraftDirector {
 
 
     public void zoomDraft(float scale_offset) {
-        if(tool != Toolbox.Tool.PATH_MODE)
+        if(tool != Toolbox.Tool.PATH_MODE) {
             this.draft.layer.scale(scale_offset);
+          edge();
+        }
+
+
 
     }
 
     public void moveDraft(Position offset) {
-        if(tool != Toolbox.Tool.PATH_MODE)
+        if(tool != Toolbox.Tool.PATH_MODE){
             this.draft.layer.moveLayer(offset);
+            edge();
+        }
 
     }
+    private void edge(){//邊界回彈功能
 
+        //邊界問題
+        float birdviewHeight=birdview.getHeight()*this.draft.layer.getScale();
+        float birdviewWidth=birdview.getWidth()*this.draft.layer.getScale();
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        int screenHight = dm.heightPixels;
+        int screenWidth = dm.widthPixels;
+        Log.d(TAG, "moveDraft: 圖width: "+birdviewWidth+"Height"+birdviewHeight+"// screenW"+screenWidth+"screenH"+screenHight);
+        Log.d(TAG, "現在圖片中心位置"+ this.draft.layer.getCenterOffset().x+"_"+this.draft.layer.getCenterOffset().y);
+
+        if (birdviewHeight<screenHight && birdviewWidth<screenWidth){//圖片小於螢幕 則鎖在正中間
+            Position screenCenter = new Position(0,0);
+            this.draft.layer.moveLayerto(screenCenter);
+        }else{//大於螢幕
+
+            //圖片右邊回彈
+            if (this.draft.layer.getCenterOffset().x+birdviewWidth/2<screenWidth/2){
+                Position over = new Position(screenWidth/2-this.draft.layer.getCenterOffset().x-birdviewWidth/2,0);
+                this.draft.layer.moveLayer(over);
+            }
+            //圖片左邊回彈
+            if (this.draft.layer.getCenterOffset().x-birdviewWidth/2>-screenWidth/2){
+
+                Position over = new Position(-screenWidth/2-this.draft.layer.getCenterOffset().x+birdviewWidth/2,0);
+                this.draft.layer.moveLayer(over);
+            }
+            //圖片下邊回彈
+            if (this.draft.layer.getCenterOffset().y+birdviewHeight/2<screenHight/2){
+                Position over = new Position(0,screenHight/2-this.draft.layer.getCenterOffset().y-birdviewHeight/2);
+                this.draft.layer.moveLayer(over);
+            }
+            //圖片上邊回彈
+            if (this.draft.layer.getCenterOffset().y-birdviewHeight/2>-screenHight/2){
+                Position over = new Position(0,-screenHight/2-this.draft.layer.getCenterOffset().y+birdviewHeight/2);
+                this.draft.layer.moveLayer(over);
+            }
+        }
+
+
+    }
     private void showToast(String string, boolean is_short) {//顯示提示訊息
         Toast.makeText(Muninn.getContext(), string, is_short ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
     }
@@ -1119,7 +1173,7 @@ public class DraftDirector {
         }
     }
 
-    public void exportToZip() {//儲存至本地 用ZIP檔儲存  //****************無法合併原圖+標線圖層*******************//
+    public void exportToZip() {//儲存至本地 用ZIP檔儲存
         File zip_directory = new File(Environment.getExternalStorageDirectory(), "zip_file");
         if(!zip_directory.exists()) {
             zip_directory.mkdir();
@@ -1137,10 +1191,11 @@ public class DraftDirector {
                 final int BUFFER = 256;
                 WriteDOMFileToZIP(data_file, zip_stream, BUFFER);
 
-                final Bitmap bitmap = rendererManager.getLineDraft();
+
+                final Bitmap bitmap = rendererManager.getLineDraft();//標線圖片
                 WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, zip_directory);
 
-                final Bitmap dBitmap = draftRenderer.getDraftBitmap();
+                final Bitmap dBitmap = draftRenderer.getDraftBitmap();///草稿線圖片
                 WriteBitmapToZIP("birdview_draft", dBitmap, zip_stream, BUFFER, zip_directory);
 
                 for(File file : signFiles) {

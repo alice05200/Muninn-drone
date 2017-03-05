@@ -141,6 +141,12 @@ public class MuninnActivity extends AppCompatActivity {
                 current_mode.setImageResource(R.drawable.ic_hand_48dp);
             }
         });
+        findViewById(R.id.line_restart_button).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_LINE);
+            }
+        });
     }
 
     private void switchToGallery() {
@@ -175,7 +181,7 @@ public class MuninnActivity extends AppCompatActivity {
             }
         }
     }
-    
+
     public void cleanAll(){
         DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
         DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);
