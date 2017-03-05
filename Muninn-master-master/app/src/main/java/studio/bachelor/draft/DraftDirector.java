@@ -1006,41 +1006,42 @@ public class DraftDirector {
 
     }
     private void edge(){//邊界回彈功能
+        if(birdview != null){
+            //邊界問題
+            float birdviewHeight=birdview.getHeight()*this.draft.layer.getScale();
+            float birdviewWidth=birdview.getWidth()*this.draft.layer.getScale();
+            DisplayMetrics dm = context.getResources().getDisplayMetrics();
+            int screenHight = dm.heightPixels;
+            int screenWidth = dm.widthPixels;
+            Log.d(TAG, "moveDraft: 圖width: "+birdviewWidth+"Height"+birdviewHeight+"// screenW"+screenWidth+"screenH"+screenHight);
+            Log.d(TAG, "現在圖片中心位置"+ this.draft.layer.getCenterOffset().x+"_"+this.draft.layer.getCenterOffset().y);
 
-        //邊界問題
-        float birdviewHeight=birdview.getHeight()*this.draft.layer.getScale();
-        float birdviewWidth=birdview.getWidth()*this.draft.layer.getScale();
-        DisplayMetrics dm = context.getResources().getDisplayMetrics();
-        int screenHight = dm.heightPixels;
-        int screenWidth = dm.widthPixels;
-        Log.d(TAG, "moveDraft: 圖width: "+birdviewWidth+"Height"+birdviewHeight+"// screenW"+screenWidth+"screenH"+screenHight);
-        Log.d(TAG, "現在圖片中心位置"+ this.draft.layer.getCenterOffset().x+"_"+this.draft.layer.getCenterOffset().y);
+            if (birdviewHeight<screenHight && birdviewWidth<screenWidth){//圖片小於螢幕 則鎖在正中間
+                Position screenCenter = new Position(0,0);
+                this.draft.layer.moveLayerto(screenCenter);
+            }else {//大於螢幕
 
-        if (birdviewHeight<screenHight && birdviewWidth<screenWidth){//圖片小於螢幕 則鎖在正中間
-            Position screenCenter = new Position(0,0);
-            this.draft.layer.moveLayerto(screenCenter);
-        }else{//大於螢幕
+                //圖片右邊回彈
+                if (this.draft.layer.getCenterOffset().x + birdviewWidth / 2 < screenWidth / 2) {
+                    Position over = new Position(screenWidth / 2 - this.draft.layer.getCenterOffset().x - birdviewWidth / 2, 0);
+                    this.draft.layer.moveLayer(over);
+                }
+                //圖片左邊回彈
+                if (this.draft.layer.getCenterOffset().x - birdviewWidth / 2 > -screenWidth / 2) {
 
-            //圖片右邊回彈
-            if (this.draft.layer.getCenterOffset().x+birdviewWidth/2<screenWidth/2){
-                Position over = new Position(screenWidth/2-this.draft.layer.getCenterOffset().x-birdviewWidth/2,0);
-                this.draft.layer.moveLayer(over);
-            }
-            //圖片左邊回彈
-            if (this.draft.layer.getCenterOffset().x-birdviewWidth/2>-screenWidth/2){
-
-                Position over = new Position(-screenWidth/2-this.draft.layer.getCenterOffset().x+birdviewWidth/2,0);
-                this.draft.layer.moveLayer(over);
-            }
-            //圖片下邊回彈
-            if (this.draft.layer.getCenterOffset().y+birdviewHeight/2<screenHight/2){
-                Position over = new Position(0,screenHight/2-this.draft.layer.getCenterOffset().y-birdviewHeight/2);
-                this.draft.layer.moveLayer(over);
-            }
-            //圖片上邊回彈
-            if (this.draft.layer.getCenterOffset().y-birdviewHeight/2>-screenHight/2){
-                Position over = new Position(0,-screenHight/2-this.draft.layer.getCenterOffset().y+birdviewHeight/2);
-                this.draft.layer.moveLayer(over);
+                    Position over = new Position(-screenWidth / 2 - this.draft.layer.getCenterOffset().x + birdviewWidth / 2, 0);
+                    this.draft.layer.moveLayer(over);
+                }
+                //圖片下邊回彈
+                if (this.draft.layer.getCenterOffset().y + birdviewHeight / 2 < screenHight / 2) {
+                    Position over = new Position(0, screenHight / 2 - this.draft.layer.getCenterOffset().y - birdviewHeight / 2);
+                    this.draft.layer.moveLayer(over);
+                }
+                //圖片上邊回彈
+                if (this.draft.layer.getCenterOffset().y - birdviewHeight / 2 > -screenHight / 2) {
+                    Position over = new Position(0, -screenHight / 2 - this.draft.layer.getCenterOffset().y + birdviewHeight / 2);
+                    this.draft.layer.moveLayer(over);
+                }
             }
         }
 
@@ -1193,10 +1194,16 @@ public class DraftDirector {
 
 
                 final Bitmap bitmap = rendererManager.getLineDraft();//標線圖片
-                WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, zip_directory);
+                Thread t1 = new Thread(new SavePicture("birdview", bitmap, zip_stream, BUFFER, zip_directory));
+                t1.start();
+                t1.join();
+                //WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, zip_directory);
 
                 final Bitmap dBitmap = draftRenderer.getDraftBitmap();///草稿線圖片
-                WriteBitmapToZIP("birdview_draft", dBitmap, zip_stream, BUFFER, zip_directory);
+                Thread t2 = new Thread(new SavePicture("birdview_draft", dBitmap, zip_stream, BUFFER, zip_directory));
+                t2.start();
+                t2.join();
+                //WriteBitmapToZIP("birdview_draft", dBitmap, zip_stream, BUFFER, zip_directory);
 
                 for(File file : signFiles) {
                     Bitmap sign_bitmap = BitmapFactory.decodeFile(file.getPath());

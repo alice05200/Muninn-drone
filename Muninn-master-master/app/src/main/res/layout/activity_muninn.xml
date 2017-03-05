@@ -7,14 +7,16 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="#ff000000"
     tools:context="studio.bachelor.muninn.MuninnActivity">
 
     <studio.bachelor.draft.DraftView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/draft"
-        android:layout_below="@+id/auto_button"
-        android:layout_above="@+id/btnSound" />
+        android:background="#343232"
+        android:layout_below="@+id/save"
+        android:layout_above="@+id/line_restart_button" />
 
     <Button
         android:layout_width="wrap_content"
@@ -29,127 +31,115 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/line_restart_button"
-        android:background="@drawable/ic_refresh"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/select_photo"
-        android:background="@drawable/ic_gallery_48dp"
-        android:layout_below="@+id/draft"
-        android:layout_alignParentStart="true" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/upload"
-        android:background="@drawable/ic_cloud_48dp"
+        android:background="@drawable/ic_refresh_1"
         android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/save" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/sign"
-        android:background="@drawable/ic_sign_48dp"
-        android:layout_below="@+id/draft"
-        android:layout_toEndOf="@+id/upload" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/setting"
-        android:background="@drawable/ic_settings_48dp"
-        android:layout_below="@+id/draft"
-        android:layout_toEndOf="@+id/select_photo" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/delete_button"
-        android:background="@drawable/ic_delete_forever_black_48dp"
-        android:layout_above="@+id/draft"
-        android:layout_toEndOf="@+id/line_restart_button" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/auto_button"
-        android:background="@drawable/ic_place_black_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/delete_button" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/line_button"
-        android:background="@drawable/ic_rate_review_black_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/auto_button" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/label_button"
-        android:background="@drawable/ic_textsms_black_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/line_button" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/save"
-        android:background="@drawable/ic_save_48dp"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/setting" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/pen_button"
-        android:background="@drawable/ic_gesture_black_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/label_button" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/clear_button"
-        android:background="@drawable/ic_format_paint_black_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/pen_button" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/undo_button"
-        android:background="@drawable/ic_undo_black_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/clear_button" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/redo_button"
-        android:background="@drawable/ic_redo_black_48dp"
-        android:layout_alignParentTop="true"
         android:layout_toEndOf="@+id/undo_button" />
 
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/move_mode"
-        android:background="@drawable/ic_hand_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/redo_button" />
+        android:id="@+id/select_photo"
+        android:background="@drawable/ic_gallery_1"
+        android:layout_above="@+id/draft" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/upload"
+        android:background="@drawable/ic_upload_1"
+        android:layout_toStartOf="@+id/save" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sign"
+        android:background="@drawable/ic_sign_1"
+        android:layout_below="@+id/draft"
+        android:layout_toEndOf="@+id/move_mode" />
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/current_mode"
+        android:id="@+id/setting"
+        android:background="@drawable/ic_setting_1"
         android:layout_below="@+id/draft"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignEnd="@+id/draft" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/delete_button"
+        android:background="@drawable/ic_delete_1"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/redo_button" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/line_button"
+        android:background="@drawable/ic_distance_1"
+        android:layout_below="@+id/draft"
+        android:layout_toEndOf="@+id/label_button" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/label_button"
+        android:background="@drawable/ic_text_1"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/clear_button" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/save"
+        android:background="@drawable/ic_save_1"
+        android:layout_alignEnd="@+id/draft" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/pen_button"
+        android:background="@drawable/ic_pencil_1"
+        android:layout_alignParentBottom="true" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/clear_button"
+        android:background="@drawable/ic_erase_1"
+        android:layout_alignTop="@+id/pen_button"
+        android:layout_toEndOf="@+id/pen_button" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/auto_button"
+        android:background="@drawable/ic_distance_auto_1"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/line_button" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/undo_button"
+        android:background="@drawable/ic_undo_1"
+        android:layout_above="@+id/draft"
+        android:layout_toStartOf="@+id/redo_button" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/redo_button"
+        android:background="@drawable/ic_redo_1"
+        android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/move_mode"
+        android:background="@drawable/ic_hand_1"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/delete_button" />
 
 </RelativeLayout>
