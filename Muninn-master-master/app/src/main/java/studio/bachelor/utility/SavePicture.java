@@ -1,6 +1,7 @@
 package studio.bachelor.utility;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -27,7 +28,8 @@ public class SavePicture implements Runnable {
     }
     @Override
     public void run() {
-        WriteBitmapToZIP("birdview", bitmap, zipOutputStream, i, file);
+        Log.d("ZIP: ", filename);
+        WriteBitmapToZIP(filename, bitmap, zipOutputStream, i, file);
     }
     private void WriteBitmapToZIP(String filename, Bitmap bitmap, ZipOutputStream zip_stream, int BUFFER, File zip_directory) {
         byte data[] = new byte[BUFFER];

@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
@@ -27,6 +29,7 @@ public class DraftRenderer implements Renderable {
     private Bitmap birdview;
     private final Paint paint = new Paint(); //for image
     private final Paint pathPaint = new Paint(); //for path(草稿線)
+    private Paint eraserPaint = new Paint();
     private boolean ableToPaint = true;
     private boolean toMiddle = true;
 
@@ -34,6 +37,13 @@ public class DraftRenderer implements Renderable {
         pathPaint.setStrokeCap(Paint.Cap.ROUND);
         pathPaint.setStrokeWidth(5.0f);
         pathPaint.setStyle(Paint.Style.STROKE);
+        eraserPaint.setAlpha(0);
+        eraserPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+        eraserPaint.setAntiAlias(true);
+        eraserPaint.setDither(true);
+        eraserPaint.setStyle(Paint.Style.STROKE);
+        eraserPaint.setStrokeJoin(Paint.Join.ROUND);
+        eraserPaint.setStrokeWidth(5.0f);
     }
 
     public DraftRenderer(Draft draft) {
