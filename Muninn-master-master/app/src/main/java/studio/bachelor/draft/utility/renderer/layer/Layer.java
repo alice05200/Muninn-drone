@@ -21,7 +21,7 @@ public class Layer{
         Log.d(TAG, "(getPositionOfLayer) center: (" + center.x + ", " + center.y + ")");
         double x = screen_position.x - center.x;
         double y = screen_position.y - center.y;
-        Log.d(TAG, "(getPositionOfLayer) (x,y): (" + x + ", " + y + ")");
+        Log.d(TAG, "(getPositionOfLayer) (x,y): (" + x + ", " + y + ")");//手點的位置
         return new Position(x, y);
     }
 
@@ -60,6 +60,7 @@ public class Layer{
     }
 
     public Position getTranslate() { //中心點的總位移
+
         return new Position(center.x + centerOffset.x, center.y + centerOffset.y);
     }
 
@@ -68,5 +69,9 @@ public class Layer{
         double y = offset.y + centerOffset.y;
         Position stack_offset = new Position(x, y);
         centerOffset.set(stack_offset);
+    }
+    public void moveLayerto(Position position) {
+
+        centerOffset.set(position);
     }
 }

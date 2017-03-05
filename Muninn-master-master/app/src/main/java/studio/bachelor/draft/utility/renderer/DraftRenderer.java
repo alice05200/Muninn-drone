@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -27,6 +28,7 @@ public class DraftRenderer implements Renderable {
     private final Paint paint = new Paint(); //for image
     private final Paint pathPaint = new Paint(); //for path(草稿線)
     private boolean ableToPaint = true;
+    private boolean toMiddle = true;
 
     { //path會依據Paint的設定，呈現不同線條
         pathPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -64,7 +66,7 @@ public class DraftRenderer implements Renderable {
         canvas.translate((float)translate.x, (float)translate.y);//位移
         canvas.scale(scale, scale);
         if(birdview != null)
-            canvas.drawBitmap(birdview, null, new Rect(0, 0, birdview.getWidth(), birdview.getHeight()), paint);
+            canvas.drawBitmap(birdview, -birdview.getWidth() / 2, -birdview.getHeight() / 2, paint);
 
         Path current_path = draft.getCurrentPath();
         if(current_path != null)
@@ -78,8 +80,8 @@ public class DraftRenderer implements Renderable {
              if (birdview != null) {
                  Bitmap bmp = Bitmap.createBitmap(birdview.getWidth(), birdview.getHeight(), Bitmap.Config.ARGB_8888);
                  Canvas tC = new Canvas(bmp);
-                 //將背景圖加入Canvas
-                 tC.drawBitmap(birdview, null, new Rect(0, 0, birdview.getWidth(), birdview.getHeight()), paint);
+                 tC.drawBitmap(birdview, null, new Rect(0, 0, birdview.getWidth(), birdview.getHeight()), paint);//將背景圖加入Canvas
+                 tC.translate(birdview.getWidth() / 2, birdview.getHeight() / 2);
                  //將全部繪製的路線加入Canvas
                  List<Path> paths = draft.getPaths();
                  for (Path path : paths) //show all the gesture paths

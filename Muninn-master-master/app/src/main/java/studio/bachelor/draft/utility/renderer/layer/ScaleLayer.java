@@ -23,9 +23,13 @@ public class ScaleLayer extends Layer {
         double y = (original.y - shift.y) / currentScale;
         return new Position(x, y);
     }
-
     public void scale(float factor) {
-        currentScale = currentScale + factor > 0.0f ? currentScale + factor : currentScale;
+        float tmp=currentScale;
+        currentScale = currentScale + factor > 0.0f ? (currentScale + factor) : currentScale;//判斷式?true回傳:false回傳
+        if (currentScale>2||currentScale<0.2)//盈如 設定了圖片放大縮小的限制
+        {
+            currentScale=tmp;
+        }
         Log.d(TAG, "currentScale: " + currentScale);
     }
 
