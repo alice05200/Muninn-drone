@@ -2,36 +2,26 @@ package studio.bachelor.muninn;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Rect;
 import android.net.Uri;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.PopupMenu;
+import android.util.Log;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import studio.bachelor.draft.DraftDirector;
-import studio.bachelor.draft.DraftView;
-import studio.bachelor.draft.marker.AnchorMarker;
-import studio.bachelor.draft.marker.LabelMarker;
-import studio.bachelor.draft.marker.MeasureMarker;
 import studio.bachelor.draft.toolbox.Toolbox;
 
 public class MuninnActivity extends AppCompatActivity {
     private static final int SELECT_PICTURE = 21101;
     private static final int SELECT_ZIP = 21102;
     private Toolbox.Tool currentTool = Toolbox.Tool.HAND_MOVE, preTool = Toolbox.Tool.HAND_MOVE;
+    private int picMode = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +34,10 @@ public class MuninnActivity extends AppCompatActivity {
 
         findViewById(R.id.select_photo).setOnClickListener(new OnClickListener() {//選擇影像
             public void onClick(View view) {//選擇照片
-                cleanAll();
                 switchToGallery();
                 Toast.makeText(getApplicationContext(), "請選擇照片", Toast.LENGTH_SHORT).show();
+                DraftDirector.instance.selectTool(currentTool);
+
             }
         });
         findViewById(R.id.select_photo).setOnTouchListener(new View.OnTouchListener() {
@@ -99,12 +90,19 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.sign).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//簽名
-                changeMode(currentTool, Toolbox.Tool.SIGNATURE);
-                findViewById(R.id.sign).setBackgroundResource(R.drawable.ic_sign_2);
-                changePic(preTool);
                 DraftDirector.instance.showSignPad(context);
-                changeMode(currentTool, preTool);
-                changePic(preTool);
+            }
+        });
+        findViewById(R.id.sign).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN){
+                    v.setBackgroundResource(R.drawable.ic_sign_2);
+                }
+                else if(event.getAction() == MotionEvent.ACTION_UP){
+                    v.setBackgroundResource(R.drawable.ic_sign_1);
+                }
+                return false;
             }
         });
         findViewById(R.id.upload).setOnClickListener(new OnClickListener() {
@@ -138,6 +136,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//標籤
                 changeMode(currentTool, Toolbox.Tool.MARKER_TYPE_LABEL);
                 findViewById(R.id.label_button).setBackgroundResource(R.drawable.ic_text_2);
+                picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.MARKER_TYPE_LABEL);
             }
@@ -147,6 +146,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//自動標線
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_LINK);
                 findViewById(R.id.auto_button).setBackgroundResource(R.drawable.ic_distance_auto_2);
+                picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.MAKER_TYPE_LINK);
             }
@@ -156,6 +156,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//標線
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_ANCHOR);
                 findViewById(R.id.line_button).setBackgroundResource(R.drawable.ic_distance_2);
+                picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.MAKER_TYPE_ANCHOR);
             }
@@ -165,6 +166,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//草稿線
                 changeMode(currentTool, Toolbox.Tool.PATH_MODE);
                 findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_2);
+                picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.PATH_MODE);
             }
@@ -172,19 +174,38 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.clear_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//清除草稿
-                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-            }
-        });
-        findViewById(R.id.clear_button).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN){
-                    v.setBackgroundResource(R.drawable.ic_erase_2);
-                }
-                else if(event.getAction() == MotionEvent.ACTION_UP){
-                    v.setBackgroundResource(R.drawable.ic_erase_1);
-                }
-                return false;
+                changeMode(currentTool, Toolbox.Tool.ERASER);
+                findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_2);
+                picMode = 0;
+                changePic(preTool);
+                final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.clear_button));
+                popupmenu.getMenuInflater().inflate(R.menu.menu, popupmenu.getMenu());
+                popupmenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() { // 設定popupmenu項目點擊傾聽者
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()){
+                            case R.id.clear:
+                                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
+                                if(preTool == Toolbox.Tool.ERASER){
+                                    DraftDirector.instance.selectTool(Toolbox.Tool.ERASER);
+                                    changeMode(preTool, preTool);
+                                }else {
+                                    findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
+                                    picMode = 1;
+                                    changePic(preTool);
+                                    changeMode(preTool, preTool);
+                                }
+                                break;
+                            case R.id.eraser:
+                                DraftDirector.instance.selectTool(Toolbox.Tool.ERASER);
+                                changeMode(preTool, Toolbox.Tool.ERASER);
+                                break;
+                        }
+                        return true;
+                    }
+
+                });
+                popupmenu.show();
             }
         });
         findViewById(R.id.redo_button).setOnClickListener(new OnClickListener() {
@@ -228,6 +249,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//刪除特定標線標籤
                 changeMode(currentTool, Toolbox.Tool.DELETER);
                 findViewById(R.id.delete_button).setBackgroundResource(R.drawable.ic_delete_2);
+                picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.DELETER);
                 Toast.makeText(getApplicationContext(), "長按物件點移除", Toast.LENGTH_SHORT).show();
@@ -238,6 +260,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//拖曳模式
                 changeMode(currentTool, Toolbox.Tool.HAND_MOVE);
                 findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
+                picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);
             }
@@ -294,41 +317,66 @@ public class MuninnActivity extends AppCompatActivity {
             }
         }
     }
-
-    public void cleanAll(){
-        DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-        DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);
-    }
     public void changeMode(Toolbox.Tool tool1, Toolbox.Tool tool2){
         preTool = tool1;
         currentTool = tool2;
     }
     public void changePic(Toolbox.Tool tool){
         if(preTool != currentTool) {
-            switch (tool) {
-                case DELETER:
-                    findViewById(R.id.delete_button).setBackgroundResource(R.drawable.ic_delete_1);
-                    break;
-                case MAKER_TYPE_LINK:
-                    findViewById(R.id.auto_button).setBackgroundResource(R.drawable.ic_distance_auto_1);
-                    break;
-                case MAKER_TYPE_ANCHOR:
-                    findViewById(R.id.line_button).setBackgroundResource(R.drawable.ic_distance_1);
-                    break;
-                case MARKER_TYPE_LABEL:
-                    findViewById(R.id.label_button).setBackgroundResource(R.drawable.ic_text_1);
-                    break;
-                case PATH_MODE:
-                    findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_1);
-                    break;
-                case CLEAR_PATH:
-                    break;
-                case HAND_MOVE:
-                    findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_1);
-                    break;
-                case SIGNATURE:
-                    findViewById(R.id.sign).setBackgroundResource(R.drawable.ic_sign_1);
-                    break;
+            if(picMode == 0) {
+                switch (tool) {
+                    case DELETER:
+                        findViewById(R.id.delete_button).setBackgroundResource(R.drawable.ic_delete_1);
+                        break;
+                    case MAKER_TYPE_LINK:
+                        findViewById(R.id.auto_button).setBackgroundResource(R.drawable.ic_distance_auto_1);
+                        break;
+                    case MAKER_TYPE_ANCHOR:
+                        findViewById(R.id.line_button).setBackgroundResource(R.drawable.ic_distance_1);
+                        break;
+                    case MARKER_TYPE_LABEL:
+                        findViewById(R.id.label_button).setBackgroundResource(R.drawable.ic_text_1);
+                        break;
+                    case PATH_MODE:
+                        findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_1);
+                        break;
+                    case ERASER:
+                        findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
+                        break;
+                    case HAND_MOVE:
+                        findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_1);
+                        break;
+                    case SIGNATURE:
+                        findViewById(R.id.sign).setBackgroundResource(R.drawable.ic_sign_1);
+                        break;
+                }
+            }else if(picMode == 1){
+                switch (tool) {
+                    case DELETER:
+                        findViewById(R.id.delete_button).setBackgroundResource(R.drawable.ic_delete_2);
+                        break;
+                    case MAKER_TYPE_LINK:
+                        findViewById(R.id.auto_button).setBackgroundResource(R.drawable.ic_distance_auto_2);
+                        break;
+                    case MAKER_TYPE_ANCHOR:
+                        findViewById(R.id.line_button).setBackgroundResource(R.drawable.ic_distance_2);
+                        break;
+                    case MARKER_TYPE_LABEL:
+                        findViewById(R.id.label_button).setBackgroundResource(R.drawable.ic_text_2);
+                        break;
+                    case PATH_MODE:
+                        findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_2);
+                        break;
+                    case ERASER:
+                        findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_2);
+                        break;
+                    case HAND_MOVE:
+                        findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
+                        break;
+                    case SIGNATURE:
+                        findViewById(R.id.sign).setBackgroundResource(R.drawable.ic_sign_2);
+                        break;
+                }
             }
         }
     }

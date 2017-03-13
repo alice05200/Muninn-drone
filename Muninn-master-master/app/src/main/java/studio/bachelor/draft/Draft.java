@@ -191,8 +191,8 @@ public class Draft{
                 Node y_node = position_node.getChildNodes().item(1);
                 Double x = Double.parseDouble(x_node.getTextContent());
                 Double y = Double.parseDouble(y_node.getTextContent());
-                Double scale_x = x / (width / 2);
-                Double scale_y = y / (height / 2);
+                Double scale_x = x;// / (width / 2);
+                Double scale_y = y;// / (height / 2);
                 x_node.setTextContent(scale_x.toString());
                 y_node.setTextContent(scale_y.toString());
                 break;
