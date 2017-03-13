@@ -14,7 +14,6 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -25,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Type;
@@ -41,6 +41,9 @@ import java.util.zip.ZipOutputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -69,9 +72,8 @@ import studio.bachelor.draft.utility.renderer.RendererManager;
 import studio.bachelor.draft.utility.renderer.builder.MarkerRendererBuilder;
 import studio.bachelor.muninn.Muninn;
 import studio.bachelor.muninn.MuninnActivity;
-import studio.bachelor.muninn.R;
 import studio.bachelor.utility.FTPUploader;
-import studio.bachelor.utility.SavePicture;
+import studio.bachelor.utility.MarkerXMLHandler;
 
 /**
  * Created by BACHELOR on 2016/02/24.
@@ -102,8 +104,14 @@ public class DraftDirector {
     private BitmapMD5Encoder MD5Encoder;
     private Thread MD5EncoderThread;
     private List<File> signFiles = new LinkedList<File>();
+    private Toolbox.Tool currentMode = Toolbox.Tool.HAND_MOVE, preMode = Toolbox.Tool.HAND_MOVE;
+    private MarkerXMLHandler markerXMLHandler = new MarkerXMLHandler();
 
+    private String filename;
+    private final String MUNINN_FILE = "Muninn";
     boolean firstTime = true; //Create後，firstTime = false; Delete後，firstTime = true
+    boolean edit_mode = false;
+    int i = 0;
 
 
 
@@ -126,20 +134,47 @@ public class DraftDirector {
 
     public void setBirdviewImageByUri(Uri uri) {//設定選取的圖片
         signFiles.clear();
-        renderableMap.clear();
-        rendererManager.renderObjects.clear();
-        StepByStepRedo.clear();
-        StepByStepUndo.clear();
+        clearAllLine();
+        draft.clearPaths();
         draft.layer.setScale(1);
+        edit_mode = false;
+        nextObjectID = 0;
+        Position screenCenter = new Position(0,0);
+        this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
 
+        if(uri.toString().indexOf("Muninn") != -1) {//檢查檔案是否在之前的專案
+            markerXMLHandler.cleanList();
+            i = 0;
+            edit_mode = true;
+            showToast("讀取中", true);
+            for(Marker m : markerXMLHandler.parse(uri.toString())){
+                if(m.getClass() == LabelMarker.class){
+                    Log.d("LabelMarker復原", "" + i);
+                    addLabelMarker(new Position(markerXMLHandler.getPositions().get(i).x + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i).y + draft.layer.getCenter().y));
+                }else if(m.getClass() == AnchorMarker.class){
+                    Log.d("AnchorMarker復原", "" + i);
+                    addAnchorMarker(new Position(markerXMLHandler.getPositions().get(i).x + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i).y + draft.layer.getCenter().y), true);
+                }else if(m.getClass() == MeasureMarker.class){
+                    Log.d("MeasureMarker復原", "" + i);
+                    addMeasureMarker(new Position(markerXMLHandler.getPositions().get(i).x + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i).y + draft.layer.getCenter().y));
+                }
+                i++;
+            }
+        }
+        edit_mode = false;
         if(MD5EncoderThread != null)
             MD5EncoderThread.interrupt();
         //birdViewUri = uri;
         try {
             birdview = MediaStore.Images.Media.getBitmap(Muninn.getContext().getContentResolver(), uri);
-            MD5Encoder = new BitmapMD5Encoder(birdview); //建立Runnable類別，依據BitMap圖檔編碼MD5
-            MD5EncoderThread = new Thread(MD5Encoder); //建立Thread
-            MD5EncoderThread.start();
+            if(!edit_mode) {
+                MD5Encoder = new BitmapMD5Encoder(birdview); //建立Runnable類別，依據BitMap圖檔編碼MD5
+                MD5EncoderThread = new Thread(MD5Encoder); //建立Thread
+                MD5EncoderThread.start();
+            }
         } catch (Exception e) {
             Log.d("DraftRenderer", "setBirdview(Uri uri)" + e.toString());
         }
@@ -147,8 +182,9 @@ public class DraftDirector {
         draft.setWidth(birdview.getWidth()); //setting the width-size of draft according to the birdview.
         draft.setHeight(birdview.getHeight());
         rendererManager.setBitmap(birdview);
-        Position screenCenter = new Position(0,0);
-        this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
+        Date current_time = new Date();
+        SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHHmmss");
+        filename = "Draft" + simple_date_format.format(current_time);//資料夾名稱預設Draft+時間
     }
 
     public void setWidthAndHeight(float width, float height) {
@@ -226,28 +262,30 @@ public class DraftDirector {
                 setPosition(new Position(position.x, position.y)).
                 build();
 
-        final EditText edit_text = new EditText(context);
-
-        AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
-        dialog_builder
-                .setTitle("標籤資訊")
-                .setView(edit_text)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        String label_str = edit_text.getText().toString();
-                        if (label_str.isEmpty())
-                            return;
-                        ((LabelMarker) marker).setLabel(label_str);
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        ((LabelMarker) marker).remove();
-                    }
-
-                })
-                .show();
-
+        Log.d("LabelMarker position", "x:" + position.x + ", y:" + position.y);
+        if(!edit_mode) {
+            final EditText edit_text = new EditText(context);
+            AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
+            dialog_builder
+                    .setTitle("標籤資訊")
+                    .setView(edit_text)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            String label_str = edit_text.getText().toString();
+                            if (label_str.isEmpty())
+                                return;
+                            ((LabelMarker) marker).setLabel(label_str);
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            ((LabelMarker) marker).remove();
+                        }
+                    }).show();
+        }else {
+            marker.setID(markerXMLHandler.getMarkers().get(i).getID());
+            ((LabelMarker) marker).setLabel(((LabelMarker) markerXMLHandler.getMarkers().get(i)).getLabel());
+        }
         draft.addMarker(marker);
 
         marker.refreshed_Layer_position.set(marker.position);
@@ -305,37 +343,53 @@ public class DraftDirector {
     private void addAnchorMarker(Position position, Boolean firstTime) {
         //  取得AnchorMarker與ControlMaker
         final Marker marker = AnchorMarker.getInstance();
-        Marker linked = AnchorMarker.getInstance().getLink(); //this link was created by marker.
+        Marker linked;
+        if(edit_mode) {
+            marker.setID(markerXMLHandler.getMarkers().get(i).getID());
+            markerXMLHandler.getMarkers().get(i + 1).position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x + draft.layer.getCenter().x,
+                    markerXMLHandler.getPositions().get(i + 1).y + draft.layer.getCenter().y));
+            markerXMLHandler.getMarkers().get(i + 1).refreshed_tap_position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x + draft.layer.getCenter().x,
+                    markerXMLHandler.getPositions().get(i + 1).y + draft.layer.getCenter().y));
+            ((AnchorMarker) marker).setLink(markerXMLHandler.getMarkers().get(i + 1));
+        }
+        linked = AnchorMarker.getInstance().getLink(); //this link was created by marker.
 
         if (renderableMap.containsKey(marker) && renderableMap.containsKey(linked)) {
             rendererManager.removeRenderer(renderableMap.get(marker));
             rendererManager.removeRenderer(renderableMap.get(linked));
         }
 
-        final EditText edit_text = new EditText(context);
-        edit_text.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        if(!edit_mode) {
+            final EditText edit_text = new EditText(context);
+            edit_text.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-        AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
-        dialog_builder
-                .setTitle("真實距離")
-                .setView(edit_text)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        String distance_str = edit_text.getText().toString();
-                        Log.d(TAG, "distance string=======================================> " + distance_str);
-                        if (distance_str.isEmpty())
-                            return;
+            AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
+            dialog_builder
+                    .setTitle("真實距離")
+                    .setView(edit_text)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            String distance_str = edit_text.getText().toString();
+                            Log.d(TAG, "distance string=======================================> " + distance_str);
+                            if (distance_str.isEmpty())
+                                return;
 
-                        ((AnchorMarker) marker).setRealDistance(Double.parseDouble(distance_str));
-                        AnchorMarker.historyDistancesUndo.addLast( Double.parseDouble(distance_str) ); //新增第一個distance至history
-                    }
-                })
-                .show();
+                            ((AnchorMarker) marker).setRealDistance(Double.parseDouble(distance_str));
+                            AnchorMarker.historyDistancesUndo.addLast(Double.parseDouble(distance_str)); //新增第一個distance至history
+                        }
+                    })
+                    .show();
+        }else {
+            linked.setID(markerXMLHandler.getMarkers().get(i + 1).getID());
+            ((AnchorMarker) marker).setRealDistance(((AnchorMarker) markerXMLHandler.getMarkers().get(i)).getRealDistance());
+        }
 
         marker.position.set(position);
-        linked.position.set(new Position(position.x + 50, position.y + 50)); //linked位移(x, y) = (50, 50)
+        if(!edit_mode)
+            linked.position.set(new Position(position.x + 50, position.y + 50)); //linked位移(x, y) = (50, 50)
         marker.refreshed_tap_position.set(position);
-        linked.refreshed_tap_position.set(new Position(position.x + 50, position.y + 50)); //linked位移(x, y) = (50, 50)
+        if(!edit_mode)
+            linked.refreshed_tap_position.set(new Position(position.x + 50, position.y + 50)); //linked位移(x, y) = (50, 50)
         ((ControlMarker)linked).setMarker(marker); //tell linked who is his daddy, marker
 
         draft.addMarker(marker); //add to markerList by MarkerManager
@@ -443,15 +497,25 @@ public class DraftDirector {
     private void addMeasureMarker(Position position) {
         //  Step1.1:建立 ControlMarkerBuilder 與Step1.2:建立 LinkMarkerBuilder
         ControlMarkerBuilder cb = new ControlMarkerBuilder();
-        Marker linked = cb.
+        Marker linked;
+        if(!edit_mode)
+            linked = cb.
                 setPosition(new Position(position.x - 100, position.y)).
                 build(); //return Marker
+        else
+            linked = cb.
+                    setPosition(new Position(markerXMLHandler.getPositions().get(i + 1).x + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i + 1).y + draft.layer.getCenter().y)).build(); //return Marker
         LinkMarkerBuilder lb = new MeasureMarkerBuilder();
         Marker marker = lb.
                 setPosition(position).
                 setLink(linked). //儲存linked marker，並且告知linked誰是他老爸marker
                 build(); //return Marker
 
+        if(edit_mode) {
+            linked.setID(markerXMLHandler.getMarkers().get(i + 1).getID());
+            marker.setID(markerXMLHandler.getMarkers().get(i).getID());
+        }
         ((ControlMarker)linked).setMarker(marker); //tell linked who is his daddy
 
         Log.d(TAG, "linked: (" + linked.refreshed_tap_position.x + ", " + linked.refreshed_tap_position.y + ") marker: (" + marker.refreshed_tap_position.x + ", " + marker.refreshed_tap_position.y + ")");
@@ -561,6 +625,8 @@ public class DraftDirector {
     }
 
     public void selectTool(Toolbox.Tool tool) {
+        preMode = currentMode;
+        currentMode = tool;
         if (tool == Toolbox.Tool.CLEAR_PATH) {
             Muninn.sound_Punch.seekTo(0);
             Muninn.sound_Punch.start();
@@ -584,9 +650,13 @@ public class DraftDirector {
                 break;
             case EDIT_UNDO:
                 doUndoTask();
+                currentMode = preMode;
+                selectTool(currentMode);
                 break;
             case EDIT_REDO:
                 doRedoTask();
+                currentMode = preMode;
+                selectTool(currentMode);
                 break;
             case HAND_MOVE:
                 markerType = null;
@@ -595,12 +665,24 @@ public class DraftDirector {
                 markerType = null;
                 break;
             case CLEAR_LINE:
-                renderableMap.clear();
-                rendererManager.renderObjects.clear();
+                clearAllLine();
+                currentMode = preMode;
+                selectTool(currentMode);
+                break;
+            case ERASER:
                 break;
         }
     }
 
+
+    private void clearAllLine(){//清除所有標線、標籤
+        renderableMap.clear();
+        rendererManager.renderObjects.clear();
+        StepByStepRedo.clear();
+        StepByStepUndo.clear();
+        draft.layer.markerManager.markers.clear();
+        firstTime = true;
+    }
 
     private void doUndoTask() {
 
@@ -964,10 +1046,10 @@ public class DraftDirector {
             this.markerSelecting.selecting();
     }
 
-    //public void setMarkerType(Type type) {
-    //    if (type.toString().contains("Marker"))
-    //        this.markerType = type;
-    //}
+    public void setMarkerType(Type type) {
+        if (type.toString().contains("Marker"))
+           this.markerType = type;
+    }
 
     public void moveHoldMarker(Position position) {
         if (this.markerHold != null) {
@@ -989,7 +1071,7 @@ public class DraftDirector {
 
 
     public void zoomDraft(float scale_offset) {
-        if(tool != Toolbox.Tool.PATH_MODE) {
+        if(tool != Toolbox.Tool.PATH_MODE && markerHold == null) {
             this.draft.layer.scale(scale_offset);
           edge();
         }
@@ -999,7 +1081,7 @@ public class DraftDirector {
     }
 
     public void moveDraft(Position offset) {
-        if(tool != Toolbox.Tool.PATH_MODE){
+        if(tool != Toolbox.Tool.PATH_MODE && markerHold == null){
             this.draft.layer.moveLayer(offset);
             edge();
         }
@@ -1051,12 +1133,24 @@ public class DraftDirector {
         Toast.makeText(Muninn.getContext(), string, is_short ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
     }
 
-    private File makeSignDirectory(String MD5) {//製作資料夾
-        File directory = new File(Environment.getExternalStorageDirectory(), MD5);
-        if(!directory.exists()) {
+    private File makeDirectory(String MD5, int mode) {//製作資料夾 0為製作簽名檔資料夾 1為製作圖片資料夾
+        File directory = new File(Environment.getExternalStorageDirectory(), MUNINN_FILE);
+        if(!directory.exists())
             directory.mkdir();
+        if(mode == 0) {
+            File sign_directory_out = new File(Environment.getExternalStorageDirectory() + "/" + MUNINN_FILE, "signature");
+            if (!sign_directory_out.exists())
+                sign_directory_out.mkdir();
+            File sign_directory = new File(Environment.getExternalStorageDirectory() + "/" + MUNINN_FILE + "/signature", MD5);
+            if (!sign_directory.exists())
+                sign_directory.mkdir();
+            return sign_directory;
+        }else{
+            File new_directory = new File(Environment.getExternalStorageDirectory() + "/" + MUNINN_FILE, filename);
+            if (!new_directory.exists())
+                new_directory.mkdir();
+            return new_directory;
         }
-        return directory;
     }
 
     public void showSignPad(Context context) {//簽名
@@ -1066,7 +1160,7 @@ public class DraftDirector {
             if(MD5EncoderThread != null && MD5Encoder != null) {//檢查有沒有開啟影像
                 MD5EncoderThread.join();
                 MD5 = MD5Encoder.getResult();
-                final File directory = makeSignDirectory(MD5);
+                final File directory = makeDirectory(MD5, 0);
                 new AlertDialog.Builder(context)
                         .setTitle("簽名 請註記" + MD5)
                         .setView(signpad)
@@ -1078,7 +1172,7 @@ public class DraftDirector {
                                 SimpleDateFormat date_format = new SimpleDateFormat("yyyyMMddHHmmss");
                                 String filename = date_format.format(date);
                                 try {
-                                    File file = new File(directory, filename + ".png");
+                                    File file = new File(directory, "signature_"  + filename + ".png");
                                     FileOutputStream output_stream = new FileOutputStream(file);
                                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, output_stream);
                                     output_stream.flush();
@@ -1175,11 +1269,8 @@ public class DraftDirector {
     }
 
     public void exportToZip() {//儲存至本地 用ZIP檔儲存
-        File zip_directory = new File(Environment.getExternalStorageDirectory(), "zip_file");
-        if(!zip_directory.exists()) {
-            zip_directory.mkdir();
-        }
-        File data_file = exportToDOM(zip_directory);
+        File directory = makeDirectory(" ", 1);
+        File data_file = exportToDOM(directory);
         Muninn.soundPlayer.start();
         showToast("開始儲存，靜候完成訊息。", true);
         if (data_file.exists()) {
@@ -1187,27 +1278,17 @@ public class DraftDirector {
                 Date current_time = new Date();
                 SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHHmmss");
                 String filename = "Draft " + simple_date_format.format(current_time) + ".zip";
-                FileOutputStream destination = new FileOutputStream(new File(zip_directory, filename));
+                FileOutputStream destination = new FileOutputStream(new File(directory, filename));
                 ZipOutputStream zip_stream = new ZipOutputStream(new BufferedOutputStream(destination));
                 final int BUFFER = 256;
                 WriteDOMFileToZIP(data_file, zip_stream, BUFFER);
 
 
-                final Bitmap bitmap = rendererManager.getLineDraft();//標線圖片
-                Thread t1 = new Thread(new SavePicture("birdview", bitmap, zip_stream, BUFFER, zip_directory));
-                t1.start();
-                t1.join();
-                //WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, zip_directory);
-
-                final Bitmap dBitmap = draftRenderer.getDraftBitmap();///草稿線圖片
-                Thread t2 = new Thread(new SavePicture("birdview_draft", dBitmap, zip_stream, BUFFER, zip_directory));
-                t2.start();
-                t2.join();
-                //WriteBitmapToZIP("birdview_draft", dBitmap, zip_stream, BUFFER, zip_directory);
-
+                final Bitmap bitmap = draftRenderer.getBirdview();//標線圖片
+                WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
                 for(File file : signFiles) {
                     Bitmap sign_bitmap = BitmapFactory.decodeFile(file.getPath());
-                    WriteBitmapToZIP(file.getName(), sign_bitmap, zip_stream, BUFFER, zip_directory);
+                    WriteBitmapToZIP(file.getName(), sign_bitmap, zip_stream, BUFFER, directory);
                 }
 
                 zip_stream.close();
@@ -1220,6 +1301,37 @@ public class DraftDirector {
             }
         }else
             showToast("儲存失敗", true);
+        /*File directory = makeDirectory(" ", 1);
+        File data_file = exportToDOM(directory);
+        Muninn.soundPlayer.start();
+        showToast("開始儲存，靜候完成訊息。", true);
+        if (data_file.exists()) {
+            try {
+                Date current_time = new Date();
+                SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHHmmss");
+                String filename = simple_date_format.format(current_time) + ".zip";
+                FileOutputStream destination = new FileOutputStream(new File(Environment.getExternalStorageDirectory(), filename));
+                ZipOutputStream zip_stream = new ZipOutputStream(new BufferedOutputStream(destination));
+                final int BUFFER = 256;
+                WriteDOMFileToZIP(data_file, zip_stream, BUFFER);
+
+                final Bitmap bitmap = draftRenderer.getBirdview();
+                WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, Environment.getExternalStorageDirectory());
+
+                for(File file : signFiles) {
+                    Bitmap sign_bitmap = BitmapFactory.decodeFile(file.getPath());
+                    WriteBitmapToZIP(file.getName(), sign_bitmap, zip_stream, BUFFER, Environment.getExternalStorageDirectory());
+                }
+
+                zip_stream.close();
+                destination.close();
+                Muninn.soundPlayer.start();
+                showToast("儲存成功", true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+            }
+        }*/
     }
 
     public void uploadToServer(Uri uri) {//上傳雲端  ///*********尚未完成*********///

@@ -148,6 +148,9 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     public int getID() {
         return ID;
     }
+    public void setID(int i){
+        ID = i;
+    }
 
 //    public void changeCRUDstate(CRUD state) {
 //        this.crud = state;
