@@ -12,19 +12,6 @@
     <string name="setting_size_fragment_summary_string">繪圖內各種元素之尺寸設定</string>
     <string name="setting_color_fragment_summary_string">繪圖內各種元素之顏色設定</string>
 
-
-
-    <string name="sure_to_delete_line">確定清除所有標線?</string>
-    <string name="alert_delete_line">警告 : 清除後無法復原。</string>
-    <string name="not_to_delete_line">取消</string>
-    <string name="yes_to_delete">確定</string>
-
-    <string name="new_mark">確定重設標線值?</string>
-    <string name="alert_new_mark">警告 : 重新設定後將會更改所有標線比例。</string>
-    <string name="not_new_mark">取消</string>
-    <string name="yes_new_mark">確定</string>
-
-
     <string name="key_marker_point_radius">marker_point_radius</string>
     <string name="key_marker_line_width">marker_line_width</string>
     <string name="key_marker_text_size">marker_text_size</string>

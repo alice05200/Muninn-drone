@@ -1,10 +1,8 @@
 package studio.bachelor.muninn;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
@@ -270,7 +268,7 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.line_restart_button).setOnClickListener(new OnClickListener() {//清除標線
             @Override
             public void onClick(View v) {
-                ClearLineDialog();//警告
+                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_LINE);
             }
         });
         findViewById(R.id.line_restart_button).setOnTouchListener(new View.OnTouchListener() {
@@ -285,24 +283,6 @@ public class MuninnActivity extends AppCompatActivity {
                 return false;
             }
         });
-    }
-    /*清除標線警告dialog*/
-    private void ClearLineDialog(){
-        new AlertDialog.Builder(MuninnActivity.this)
-                .setTitle(R.string.sure_to_delete_line)
-                .setMessage(R.string.alert_delete_line)
-                .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_LINE);
-                    }
-                })
-                .setNeutralButton(R.string.not_to_delete_line, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                })
-                .show();
     }
 
     private void switchToGallery() {
