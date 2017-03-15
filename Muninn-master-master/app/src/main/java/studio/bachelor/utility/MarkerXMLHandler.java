@@ -72,7 +72,7 @@ public class MarkerXMLHandler {
     public ArrayList<Marker> parse(String str){
         XmlPullParserFactory factory = null;
         XmlPullParser parser = null;
-        String file_name = str.substring(str.indexOf("/Muninn"), str.indexOf("birdview.png")) + "data.xml";
+        String file_name = str.substring(str.indexOf("/Muninn"), str.indexOf("birdview.jpg")) + "data.xml";
         Log.d("我我我", file_name);
         try {
             File file = new File(Environment.getExternalStorageDirectory() + file_name);
