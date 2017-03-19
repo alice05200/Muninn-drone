@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.StrictMode;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -110,6 +111,8 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.upload).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//上傳至雲端
+
+
                 switchToZIPBrowsing();
             }
         });
@@ -285,6 +288,9 @@ public class MuninnActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
     }
     /*清除標線警告dialog*/
     private void ClearLineDialog(){

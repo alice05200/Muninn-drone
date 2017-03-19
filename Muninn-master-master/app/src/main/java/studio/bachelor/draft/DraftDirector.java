@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.apache.commons.net.ftp.FTP;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -72,6 +74,7 @@ import studio.bachelor.draft.utility.SignPad;
 import studio.bachelor.draft.utility.renderer.DraftRenderer;
 import studio.bachelor.draft.utility.renderer.RendererManager;
 import studio.bachelor.draft.utility.renderer.builder.MarkerRendererBuilder;
+import studio.bachelor.muninn.FTPUtils;
 import studio.bachelor.muninn.Muninn;
 import studio.bachelor.muninn.MuninnActivity;
 import studio.bachelor.utility.FTPUploader;
@@ -1382,6 +1385,8 @@ public class DraftDirector {
     public void exportToZip() {//儲存至本地 用ZIP檔儲存
         File directory = makeDirectory();
         File data_file = exportToDOM(directory);
+
+
         Muninn.soundPlayer.start();
         showToast("開始儲存，靜候完成訊息。", true);
         if (data_file.exists()) {
@@ -1400,6 +1405,11 @@ public class DraftDirector {
                     Bitmap sign_bitmap = BitmapFactory.decodeFile(file.getPath());
                     WriteBitmapToZIP(file.getName(), sign_bitmap, zip_stream, BUFFER, directory);
                 }
+
+                // 上傳雲端在這做。
+                UploadParams params = new UploadParams(directory.getPath()+"/"+filename,filename);
+                UploadTask uploadtask = new UploadTask();
+                uploadtask.execute(params);
 
                 zip_stream.close();
                 destination.close();
@@ -1439,4 +1449,32 @@ public class DraftDirector {
             e.printStackTrace();
         }
     }
+
+    private static class UploadParams
+    {
+        String directory_path;
+        String file_name;
+        UploadParams(String directory_path,String file_name)
+        {
+            this.directory_path = directory_path;
+            this.file_name = file_name;
+        }
+    }
+
+    private class UploadTask extends AsyncTask<UploadParams, Void, Void>
+    {
+        FTPUtils ftpUtils = FTPUtils.getInstance();
+        boolean flag = ftpUtils.initFTPSetting("bgbot.ddns.net", 21, "kusakawa", "kusakawa");
+
+        @Override
+        protected Void doInBackground(UploadParams... uploadParamses) {
+            ftpUtils.uploadFile(uploadParamses[0].directory_path,uploadParamses[0].file_name);
+            return null;
+        }
+    }
 }
+
+
+
+
+
