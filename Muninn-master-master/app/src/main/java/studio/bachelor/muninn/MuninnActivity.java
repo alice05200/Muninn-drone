@@ -3,6 +3,7 @@ package studio.bachelor.muninn;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.StrictMode;
 import android.support.v7.app.AlertDialog;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,11 +32,21 @@ public class MuninnActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_muninn);
+
         final Context context = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);//預設為拖曳模式
         findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
-
+        findViewById(R.id.move_huginn).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(appInstalledOrNot("studio.bachelor.huginn")) {
+                    Intent intent = getPackageManager().getLaunchIntentForPackage("studio.bachelor.huginn");
+                    startActivity(intent);
+                }else
+                    Toast.makeText(getApplicationContext(), "尚未安裝Huginn", Toast.LENGTH_SHORT).show();
+            }
+        });
         findViewById(R.id.select_photo).setOnClickListener(new OnClickListener() {//選擇影像
             public void onClick(View view) {//選擇照片
                 switchToGallery();
@@ -111,8 +123,6 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.upload).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//上傳至雲端
-
-
                 switchToZIPBrowsing();
             }
         });
@@ -292,6 +302,34 @@ public class MuninnActivity extends AppCompatActivity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
     }
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
+            ConfirmExit(); //呼叫ConfirmExit()函數
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+
+    public void ConfirmExit(){
+        android.app.AlertDialog.Builder ad=new android.app.AlertDialog.Builder(MuninnActivity.this); //創建訊息方塊
+        ad.setTitle("離開");
+        ad.setMessage("返回主選單");
+        ad.setPositiveButton("是", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
+            public void onClick(DialogInterface dialog, int i) {
+                Intent intent = new Intent(getApplicationContext(), SplashViewActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+        ad.setNegativeButton("否",new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+            public void onClick(DialogInterface dialog, int i) {
+            }
+        });
+        ad.show();//顯示訊息視窗
+    }
     /*清除標線警告dialog*/
     private void ClearLineDialog(){
         new AlertDialog.Builder(MuninnActivity.this)
@@ -405,5 +443,16 @@ public class MuninnActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private boolean appInstalledOrNot(String uri) {
+        PackageManager pm = getPackageManager();
+        try {
+            pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+
+        return false;
     }
 }

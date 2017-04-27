@@ -50,10 +50,10 @@ public class Position implements Metadata {
     }
 
     private void setPositionNode(Document document, Element root) {
-        Element node = document.createElement("x");
+        Element node = document.createElement("positionX");
         node.appendChild(document.createTextNode("" + x));
         root.appendChild(node);
-        node = document.createElement("y");
+        node = document.createElement("positionY");
         node.appendChild(document.createTextNode("" + y));
         root.appendChild(node);
     }

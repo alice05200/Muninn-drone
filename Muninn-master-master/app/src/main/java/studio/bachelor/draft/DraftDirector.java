@@ -148,34 +148,6 @@ public class DraftDirector {
         nextObjectID = 0;
         Position screenCenter = new Position(0,0);
         this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
-
-        if(uri.toString().indexOf("Muninn") != -1) {//檢查檔案是否在之前的專案
-            markerXMLHandler.cleanList();
-            i = 0;
-            edit_mode = true;
-            showToast("讀取中", true);
-            for(Marker m : markerXMLHandler.parse(uri.toString())){
-                if(m.getClass() == LabelMarker.class){
-                    Log.d("LabelMarker復原", "" + i);
-                    addLabelMarker(new Position(markerXMLHandler.getPositions().get(i).x + draft.layer.getCenter().x,
-                            markerXMLHandler.getPositions().get(i).y + draft.layer.getCenter().y));
-                }else if(m.getClass() == AnchorMarker.class){
-                    firstTime = false;
-                    Log.d("AnchorMarker復原", "" + i);
-                    addAnchorMarker(new Position(markerXMLHandler.getPositions().get(i).x + draft.layer.getCenter().x,
-                            markerXMLHandler.getPositions().get(i).y + draft.layer.getCenter().y), true);
-                }else if(m.getClass() == MeasureMarker.class){
-                    Log.d("MeasureMarker復原", "" + i);
-                    addMeasureMarker(new Position(markerXMLHandler.getPositions().get(i).x + draft.layer.getCenter().x,
-                            markerXMLHandler.getPositions().get(i).y + draft.layer.getCenter().y));
-                }
-                i++;
-            }
-        }
-        edit_mode = false;
-        //if(MD5EncoderThread != null)
-        //    MD5EncoderThread.interrupt();
-        //birdViewUri = uri;
         try {
             birdview = MediaStore.Images.Media.getBitmap(Muninn.getContext().getContentResolver(), uri);
             birdViewUri = uri;
@@ -192,6 +164,34 @@ public class DraftDirector {
         draft.setWidth(birdview.getWidth()); //setting the width-size of draft according to the birdview.
         draft.setHeight(birdview.getHeight());
         rendererManager.setBitmap(birdview);
+        if(uri.toString().indexOf("Muninn") != -1) {//檢查檔案是否在之前的專案
+            markerXMLHandler.cleanList();
+            i = 0;
+            edit_mode = true;
+            showToast("讀取中", true);
+            for(Marker m : markerXMLHandler.parse(uri.toString())){
+                if(m.getClass() == LabelMarker.class){
+                    Log.d("LabelMarker復原", "" + i);
+                    addLabelMarker(new Position(markerXMLHandler.getPositions().get(i).x * (birdview.getWidth() / 2) + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i).y * (birdview.getHeight() / 2) + draft.layer.getCenter().y));
+                }else if(m.getClass() == AnchorMarker.class){
+                    firstTime = false;
+                    Log.d("AnchorMarker復原", "" + i);
+                    addAnchorMarker(new Position(markerXMLHandler.getPositions().get(i).x * (birdview.getWidth() / 2) + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i).y * (birdview.getHeight() / 2) + draft.layer.getCenter().y), true);
+                }else if(m.getClass() == MeasureMarker.class){
+                    Log.d("MeasureMarker復原", "" + i);
+                    addMeasureMarker(new Position(markerXMLHandler.getPositions().get(i).x * (birdview.getWidth() / 2) + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i).y * (birdview.getHeight() / 2) + draft.layer.getCenter().y));
+                }
+                i++;
+            }
+        }
+        edit_mode = false;
+        //if(MD5EncoderThread != null)
+        //    MD5EncoderThread.interrupt();
+        //birdViewUri = uri;
+
         Date current_time = new Date();
         SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHHmmss");
         filename = "Draft" + simple_date_format.format(current_time);//資料夾名稱預設Draft+時間
@@ -200,7 +200,6 @@ public class DraftDirector {
     public void setWidthAndHeight(float width, float height) {
         this.draft.setWidthAndHeight(width, height);
     }
-
     /*public void setToolboxRenderer(Position upper_left_corner, float width, float height) {
         toolboxRenderer = new ToolboxRenderer(toolbox, upper_left_corner, width, height);
     }*/
@@ -417,10 +416,10 @@ public class DraftDirector {
         Marker linked;
         if(edit_mode) {
             marker.setID(markerXMLHandler.getMarkers().get(i).getID());
-            markerXMLHandler.getMarkers().get(i + 1).position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x + draft.layer.getCenter().x,
-                    markerXMLHandler.getPositions().get(i + 1).y + draft.layer.getCenter().y));
-            markerXMLHandler.getMarkers().get(i + 1).refreshed_tap_position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x + draft.layer.getCenter().x,
-                    markerXMLHandler.getPositions().get(i + 1).y + draft.layer.getCenter().y));
+            markerXMLHandler.getMarkers().get(i + 1).position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x * (birdview.getWidth() / 2)  + draft.layer.getCenter().x,
+                    markerXMLHandler.getPositions().get(i + 1).y * (birdview.getHeight() / 2)  + draft.layer.getCenter().y));
+            markerXMLHandler.getMarkers().get(i + 1).refreshed_tap_position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x * (birdview.getWidth() / 2)  + draft.layer.getCenter().x,
+                    markerXMLHandler.getPositions().get(i + 1).y * (birdview.getHeight() / 2)  + draft.layer.getCenter().y));
             ((AnchorMarker) marker).setLink(markerXMLHandler.getMarkers().get(i + 1));
         }
         linked = AnchorMarker.getInstance().getLink(); //this link was created by marker.
@@ -577,8 +576,8 @@ public class DraftDirector {
                 build(); //return Marker
         else
             linked = cb.
-                    setPosition(new Position(markerXMLHandler.getPositions().get(i + 1).x + draft.layer.getCenter().x,
-                            markerXMLHandler.getPositions().get(i + 1).y + draft.layer.getCenter().y)).build(); //return Marker
+                    setPosition(new Position(markerXMLHandler.getPositions().get(i + 1).x * (birdview.getWidth() / 2)  + draft.layer.getCenter().x,
+                            markerXMLHandler.getPositions().get(i + 1).y * (birdview.getHeight() / 2)  + draft.layer.getCenter().y)).build(); //return Marker
         LinkMarkerBuilder lb = new MeasureMarkerBuilder();
         Marker marker = lb.
                 setPosition(position).

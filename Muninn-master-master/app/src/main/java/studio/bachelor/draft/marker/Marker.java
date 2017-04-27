@@ -142,6 +142,12 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
         Element node = document.createElement(getElementName());
         node.setAttribute("ID", "" + ID);
         node.appendChild(position.transformStateToDOMNode(document));
+        Element nodeSize = document.createElement("size");
+        nodeSize.appendChild(document.createTextNode("-1"));
+        node.appendChild(nodeSize);
+        Element nodeColor = document.createElement("color");
+        nodeColor.appendChild(document.createTextNode("-1"));
+        node.appendChild(nodeColor);
         return node;
     }
 

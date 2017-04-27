@@ -142,4 +142,12 @@
         android:layout_alignParentBottom="true"
         android:layout_toEndOf="@+id/delete_button" />
 
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/move_huginn"
+        android:background="@android:drawable/btn_star_big_off"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/setting" />
+
 </RelativeLayout>

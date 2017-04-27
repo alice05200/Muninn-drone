@@ -13,7 +13,6 @@
     <string name="setting_color_fragment_summary_string">繪圖內各種元素之顏色設定</string>
 
 
-
     <string name="sure_to_delete_line">確定清除所有標線?</string>
     <string name="alert_delete_line">警告 : 清除後無法復原。</string>
     <string name="not_to_delete_line">取消</string>
