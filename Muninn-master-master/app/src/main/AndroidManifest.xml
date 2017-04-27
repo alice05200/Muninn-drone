@@ -4,18 +4,20 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" /> //for Media Player
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    //for Media Player
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".Muninn"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:supportsRtl="true"
-        android:largeHeap= "true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MuninnActivity"
+        <activity
+            android:name=".SplashViewActivity"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AppTheme.NoActionBar">
@@ -25,11 +27,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".SettingActivity"
-            android:label="@string/setting_label"
-            />
+            android:label="@string/setting_label" />
+        <activity android:name=".MuninnActivity"  android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/AppTheme.NoActionBar">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>></activity>
     </application>
 
 </manifest>

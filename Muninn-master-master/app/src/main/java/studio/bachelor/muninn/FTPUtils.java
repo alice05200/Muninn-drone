@@ -135,6 +135,7 @@ public class FTPUtils {
             // 退出FTP，關閉ftpCLient的連結
             ftpClient.logout();
             ftpClient.disconnect();
+            Log.d("FTP:", "上傳完畢");
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
