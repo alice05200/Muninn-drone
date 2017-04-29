@@ -54,10 +54,11 @@ public class LinkMarker extends Marker {
 
     @Override
     public Node transformStateToDOMNode(Document document) {
-        Node node = super.transformStateToDOMNode(document);
-        Element element = document.createElement("link");
+        //Node node =
+        return super.transformStateToDOMNode(document);
+        /*Element element = document.createElement("link");
         element.appendChild(document.createTextNode("" + this.link.getID()));
         node.appendChild(element);
-        return node;
+        return node;*/
     }
 }
