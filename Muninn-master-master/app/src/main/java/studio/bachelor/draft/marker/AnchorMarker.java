@@ -47,10 +47,6 @@ public class AnchorMarker extends LinkMarker implements MapStringSupport {
 
     @Override
     public Node transformStateToDOMNode(Document document) {
-        Node node = super.transformStateToDOMNode(document);
-        Element real_distance = document.createElement("real_distance");
-        real_distance.appendChild(document.createTextNode("" + realDistance));
-        node.appendChild(real_distance);
-        return node;
+        return super.transformStateToDOMNode(document);
     }
 }

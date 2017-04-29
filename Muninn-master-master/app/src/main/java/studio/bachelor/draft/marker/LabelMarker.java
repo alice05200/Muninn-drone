@@ -40,10 +40,6 @@ public class LabelMarker extends Marker implements MapStringSupport {
 
     @Override
     public Node transformStateToDOMNode(Document document) {
-        Node node = super.transformStateToDOMNode(document);
-        Element element = document.createElement("label");
-        element.appendChild(document.createTextNode(label));
-        node.appendChild(element);
-        return node;
+        return super.transformStateToDOMNode(document);
     }
 }

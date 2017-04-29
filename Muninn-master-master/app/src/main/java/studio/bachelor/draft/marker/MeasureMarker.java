@@ -54,10 +54,11 @@ public class MeasureMarker extends LinkMarker implements MapStringSupport {
 
     @Override
     public Node transformStateToDOMNode(Document document) {
-        Node node = super.transformStateToDOMNode(document);
-        Element element = document.createElement("distance");
+        //Node node =
+        return  super.transformStateToDOMNode(document);
+        /*Element element = document.createElement("distance");
         element.appendChild(document.createTextNode(""+ distance));
         node.appendChild(element);
-        return node;
+        return node;*/
     }
 }

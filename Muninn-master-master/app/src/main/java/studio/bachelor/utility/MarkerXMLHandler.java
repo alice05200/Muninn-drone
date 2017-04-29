@@ -1,34 +1,18 @@
 package studio.bachelor.utility;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.util.ArrayList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import studio.bachelor.draft.DraftDirector;
 import studio.bachelor.draft.marker.AnchorMarker;
 import studio.bachelor.draft.marker.ControlMarker;
 import studio.bachelor.draft.marker.LabelMarker;
@@ -36,8 +20,6 @@ import studio.bachelor.draft.marker.Marker;
 import studio.bachelor.draft.marker.MeasureMarker;
 import studio.bachelor.draft.utility.Position;
 import studio.bachelor.muninn.Muninn;
-import studio.bachelor.muninn.MuninnActivity;
-import studio.bachelor.muninn.R;
 
 /**
  * Created by User on 2017/3/8.
@@ -45,21 +27,48 @@ import studio.bachelor.muninn.R;
 public class MarkerXMLHandler {
     private Marker marker;
     private ArrayList<Marker> markers;
-    private ArrayList<Position> positions;
-    private String markerType, position_X, position_Y, label_text, link;
-    private int id;
+    private ArrayList<Position> positions, tempPositions;
+    private ArrayList<Integer> nameLabels, markerIDs, numLabels, link1s, link2s, labelIDs, labelTypes;
+    private ArrayList<String> labelTexts;
+    private String  position_X, position_Y, nameLabel, labelText;
+    private int id, labelID, markerNum = 0, linkNum = 0;
     private float px, py;
-    private double distance;
-    private int mode = 0;//0 x 1 y 2 label 3 real_distance
+    private int mode = 0, numLabel = -1, link1 = -1, link2 = -1;
+    private boolean markerDone = false;
 
     public MarkerXMLHandler(){
         markers = new ArrayList<Marker>();
         positions = new ArrayList<Position>();
+        nameLabels = new ArrayList<Integer>();
+        numLabels = new ArrayList<Integer>();
+        link1s = new ArrayList<Integer>();
+        link2s = new ArrayList<Integer>();
+        labelIDs = new ArrayList<Integer>();
+        labelTypes = new ArrayList<Integer>();
+        labelTexts = new ArrayList<String>();
+        markerIDs = new ArrayList<Integer>();
+        tempPositions = new ArrayList<Position>();
     }
 
     public void cleanList(){
         markers.clear();
         positions.clear();
+        nameLabels.clear();
+        numLabels.clear();
+        link1s.clear();
+        link2s.clear();
+        labelIDs.clear();
+        labelTypes.clear();
+        labelTexts.clear();
+        markerIDs.clear();
+        tempPositions.clear();
+        markerNum = 0;
+        mode = 0;
+        numLabel = -1;
+        link1 = -1;
+        link2 = -1;
+        linkNum = 0;
+        markerDone = false;
     }
     public ArrayList<Position> getPositions(){
         return positions;
@@ -92,92 +101,84 @@ public class MarkerXMLHandler {
                 String tagName = parser.getName();
                 switch (eventType) {
                     case XmlPullParser.START_TAG://開頭
-                        if(tagName.equals("LabelMarker")){
-                            marker = new LabelMarker();
+                        if(tagName.equals("marker")){
                             String id = parser.getAttributeValue(0);
                             this.id = Integer.parseInt(id);
-                            Log.d("marker", tagName);
-                        }else if(tagName.equals("AnchorMarker")){
-                            marker = AnchorMarker.getInstance();
-                            String id = parser.getAttributeValue(0);
-                            this.id = Integer.parseInt(id);
-                            Log.d("marker", tagName);
-                        }else if(tagName.equals("MeasureMarker")){
-                            marker = new MeasureMarker();
-                            String id = parser.getAttributeValue(0);
-                            this.id = Integer.parseInt(id);
-                            Log.d("marker", tagName);
-                        }else if(tagName.equals("ControlMarker")){
-                            marker = new ControlMarker();
-                            String id = parser.getAttributeValue(0);
-                            this.id = Integer.parseInt(id);
-                            Log.d("marker", tagName);
-                        }else if(tagName.equals("x")){
+                            markerIDs.add(this.id);
+                            markerNum++;
+                            Log.d("Marker復原ID", "" + this.id);
+                        }else if(tagName.equals("positionX")){
                             mode = 0;
-                            Log.d("X position", tagName);
-                        }else if(tagName.equals("y")){
+                        }else if(tagName.equals("positionY")){
                             mode = 1;
-                            Log.d("Y position", tagName);
-                        }else if(tagName.equals("label")){
+                        }else if(tagName.equals("nameLabel")){
                             mode = 2;
-                            Log.d("label", tagName);
-                        }else if(tagName.equals("real_distance")){
+                        }else if(tagName.equals("link1")){
                             mode = 3;
-                            Log.d("real distance", tagName);
-                        }else if(tagName.equals("distance")){
-                            mode = 3;
-                        }else if(tagName.equals("link")){
+                        }else if(tagName.equals("link2")){
                             mode = 4;
-                            Log.d("Link", tagName);
-                        }else if(tagName.equals("code")){
+                        }else if(tagName.equals("numLabel")){
                             mode = 5;
-                        }
+                        }else if(tagName.equals("Label")){
+                            labelID = Integer.parseInt(parser.getAttributeValue(0));
+                            labelIDs.add(labelID);
+                            Log.d("Label復原ID", "" + labelID);
+                        }else if(tagName.equals("type")){
+                            mode = 6;
+                        }else if(tagName.equals("label")){
+                            mode = 7;
+                        }else
+                            mode = -1;
                         break;
                     case XmlPullParser.TEXT://內容
-                        switch(mode) {
+                        switch(mode){
                             case 0:
                                 position_X = parser.getText();
                                 px = Float.parseFloat(position_X);
-                                Log.d("X position", parser.getText());
                                 break;
                             case 1:
                                 position_Y = parser.getText();
                                 py = Float.parseFloat(position_Y);
-                                Log.d("Y position", parser.getText());
                                 break;
                             case 2:
-                                label_text = parser.getText();
-                                Log.d("label", parser.getText());
+                                nameLabel = parser.getText();
+                                nameLabels.add(Integer.parseInt(nameLabel));
+                                Log.d("nameLabel復原ID", nameLabel);
                                 break;
                             case 3:
-                                distance = Double.parseDouble(parser.getText());
-                                Log.d("distance", parser.getText());
+                                link1 = Integer.parseInt(parser.getText());
+                                link1s.add(link1);
+                                Log.d("link1復原ID", "" + link1);
+                                break;
+                            case 4:
+                                link2 = Integer.parseInt(parser.getText());
+                                link2s.add(link2);
+                                Log.d("link2復原ID", "" + link2);
+                                linkNum++;
+                                break;
+                            case 5:
+                                numLabel = Integer.parseInt(parser.getText());
+                                numLabels.add(numLabel);
+                                Log.d("numLabel復原ID", "" + numLabel);
+                                break;
+                            case 6:
+                                labelTypes.add(Integer.parseInt(parser.getText()));
+                                Log.d("labelTypes復原", parser.getText());
+                                break;
+                            case 7:
+                                labelText = parser.getText();
+                                Log.d("labelTexts復原", parser.getText());
                                 break;
                         }
                         break;
                     case XmlPullParser.END_TAG://結尾
-                        if(tagName.equals("LabelMarker") && marker.getClass() == LabelMarker.class){
-                            marker = new LabelMarker(label_text);
-                            marker.setID(this.id);
-                            markers.add(marker);
-                            Position p = new Position(px, py);
-                            positions.add(p);
-                        }else if(tagName.equals("AnchorMarker") && marker.getClass() == AnchorMarker.class){
-                            ((AnchorMarker)marker).setRealDistance(distance);
-                            marker.setID(this.id);
-                            markers.add(marker);
-                            Position p = new Position(px, py);
-                            positions.add(p);
-                        }else if(tagName.equals("MeasureMarker") && marker.getClass() == MeasureMarker.class){
-                            marker.setID(this.id);
-                            markers.add(marker);
-                            Position p = new Position(px, py);
-                            positions.add(p);
-                        }else if(tagName.equals("ControlMarker") && marker.getClass() == ControlMarker.class){
-                            marker.setID(this.id);
-                            markers.add(marker);
-                            Position p = new Position(px, py);
-                            positions.add(p);
+                        if(tagName.equals("positionY") && !markerDone){
+                            tempPositions.add(new Position(px, py));
+                            Log.d("Position復原", "x" + px + "y" + py);
+                        }else if(tagName.equals("markers")){
+                            markerDone = true;
+                        }else if(tagName.equals("label")){
+                            labelTexts.add(labelText);
                         }
                         break;
                     default:
@@ -189,6 +190,48 @@ public class MarkerXMLHandler {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        Log.d("Marker數", "" + markerNum);
+        Log.d("Line數", "" + linkNum);
+        for(int i = 0; i < markerNum; i++){//先恢復LabelMarker
+            if(nameLabels.get(i) != -1){
+                marker = new LabelMarker();
+                ((LabelMarker)marker).setLabel(labelTexts.get(nameLabels.get(i)));
+                markers.add(marker);
+                positions.add(tempPositions.get(i));
+            }
+        }
+        int anchorMarker = -1;
+        if(labelTypes.indexOf(1) != -1)
+            anchorMarker = numLabels.indexOf(labelIDs.get(labelTypes.indexOf(1)));//找type為1的marker(AnchorMarker)
+        if(anchorMarker != -1) {//如果有找到
+            marker = AnchorMarker.getInstance();
+            ((AnchorMarker) marker).setRealDistance(Double.parseDouble(labelTexts.get(labelTypes.indexOf(1))));
+            markers.add(marker);
+            marker = new ControlMarker();
+            markers.add(marker);
+            if(link1s.get(anchorMarker) > link2s.get(anchorMarker)) {
+                positions.add(tempPositions.get(markerIDs.indexOf(link2s.get(anchorMarker))));
+                positions.add(tempPositions.get(markerIDs.indexOf(link1s.get(anchorMarker))));
+            }else{
+                positions.add(tempPositions.get(markerIDs.indexOf(link1s.get(anchorMarker))));
+                positions.add(tempPositions.get(markerIDs.indexOf(link2s.get(anchorMarker))));
+            }
+        }
+        for(int i = 0; i < linkNum; i++){//恢復MeasureMarker
+            if(i != anchorMarker){
+                marker = new MeasureMarker();
+                markers.add(marker);
+                marker = new ControlMarker();
+                markers.add(marker);
+                if(link1s.get(i) > link2s.get(i)){
+                    positions.add(tempPositions.get(markerIDs.indexOf(link2s.get(i))));
+                    positions.add(tempPositions.get(markerIDs.indexOf(link1s.get(i))));
+                }else{
+                    positions.add(tempPositions.get(markerIDs.indexOf(link1s.get(i))));
+                    positions.add(tempPositions.get(markerIDs.indexOf(link2s.get(i))));
+                }
+            }
         }
         return markers;
     }

@@ -8,6 +8,7 @@ import org.w3c.dom.Node;
 
 import java.util.LinkedList;
 
+import studio.bachelor.draft.Draft;
 import studio.bachelor.draft.DraftDirector;
 import studio.bachelor.draft.utility.Lockable;
 import studio.bachelor.draft.utility.Metadata;
@@ -22,6 +23,7 @@ import studio.bachelor.draft.utility.renderer.layer.Layer;
  */
 public abstract class Marker implements Lockable, Touchable, Selectable, Removable, Metadata {
     /** <code>position</code>將以<code>Draft</code>中心為基準點。 */
+    private static final Draft instance = Draft.getInstance();
     public final Position position = new Position();
     public Position refreshed_tap_position = new Position();
     public LinkedList<Position> historyTapPositionsUndo = new LinkedList<Position>();
@@ -139,15 +141,24 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     }
 
     public Node transformStateToDOMNode(Document document) {
-        Element node = document.createElement(getElementName());
+        Element node = document.createElement("marker");
         node.setAttribute("ID", "" + ID);
-        node.appendChild(position.transformStateToDOMNode(document));
+        //node.appendChild(position.transformStateToDOMNode(document));
+        Element nodeX = document.createElement("positionX");
+        nodeX.appendChild(document.createTextNode("" + (this.position.x)));
+        node.appendChild(nodeX);
+        Element nodeY = document.createElement("positionY");
+        nodeY.appendChild(document.createTextNode("" + (this.position.y)));
+        node.appendChild(nodeY);
         Element nodeSize = document.createElement("size");
         nodeSize.appendChild(document.createTextNode("-1"));
         node.appendChild(nodeSize);
         Element nodeColor = document.createElement("color");
         nodeColor.appendChild(document.createTextNode("-1"));
         node.appendChild(nodeColor);
+        Element nodeNameLabel = document.createElement("nameLabel");
+        nodeNameLabel.appendChild(document.createTextNode("-1"));
+        node.appendChild(nodeNameLabel);
         return node;
     }
 
@@ -157,7 +168,6 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     public void setID(int i){
         ID = i;
     }
-
 //    public void changeCRUDstate(CRUD state) {
 //        this.crud = state;
 //    }

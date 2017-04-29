@@ -189,38 +189,19 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.clear_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//清除草稿
-                changeMode(currentTool, Toolbox.Tool.ERASER);
-                findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_2);
-                picMode = 0;
-                changePic(preTool);
-                final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.clear_button));
-                popupmenu.getMenuInflater().inflate(R.menu.menu, popupmenu.getMenu());
-                popupmenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() { // 設定popupmenu項目點擊傾聽者
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()){
-                            case R.id.clear:
-                                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-                                if(preTool == Toolbox.Tool.ERASER){
-                                    DraftDirector.instance.selectTool(Toolbox.Tool.ERASER);
-                                    changeMode(preTool, preTool);
-                                }else {
-                                    findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
-                                    picMode = 1;
-                                    changePic(preTool);
-                                    changeMode(preTool, preTool);
-                                }
-                                break;
-                            case R.id.eraser:
-                                DraftDirector.instance.selectTool(Toolbox.Tool.ERASER);
-                                changeMode(preTool, Toolbox.Tool.ERASER);
-                                break;
-                        }
-                        return true;
-                    }
-
-                });
-                popupmenu.show();
+                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
+            }
+        });
+        findViewById(R.id.clear_button).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN){
+                    v.setBackgroundResource(R.drawable.ic_erase_2);
+                }
+                else if(event.getAction() == MotionEvent.ACTION_UP){
+                    v.setBackgroundResource(R.drawable.ic_erase_1);
+                }
+                return false;
             }
         });
         findViewById(R.id.redo_button).setOnClickListener(new OnClickListener() {

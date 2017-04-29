@@ -181,36 +181,106 @@ public class Draft{
         this.scale = scale;
     }
 
-    private Node createMarkerNodeWithLayerScale(Marker marker, Document document) {
+    private Node createMarkerNodeWithLayerScale(Marker marker, Document document, int k) {
         Node marker_node = marker.transformStateToDOMNode(document);
         int length = marker_node.getChildNodes().getLength();
         for(int i = 0; i < length; ++i) {
             Node position_node = marker_node.getChildNodes().item(i);
-            if(position_node.getNodeName() == "position") {
-                Node x_node = position_node.getChildNodes().item(0);
-                Node y_node = position_node.getChildNodes().item(1);
-                Double x = Double.parseDouble(x_node.getTextContent());
-                Double y = Double.parseDouble(y_node.getTextContent());
+            if(position_node.getNodeName() == "positionX") {
+                Double x = Double.parseDouble(position_node.getTextContent());
                 Double scale_x = x / (width / 2);
+                scale_x = (double)(Math.round(scale_x * 1000000)) / 1000000;
+                position_node.setTextContent(scale_x.toString());
+            }else if(position_node.getNodeName() == "positionY") {
+                Double y = Double.parseDouble(position_node.getTextContent());
                 Double scale_y = y/ (height / 2);
-                x_node.setTextContent(scale_x.toString());
-                y_node.setTextContent(scale_y.toString());
-                break;
+                scale_y = (double)(Math.round(scale_y * 1000000)) / 1000000;
+                position_node.setTextContent(scale_y.toString());
+            }else if(marker.getClass() == LabelMarker.class && position_node.getNodeName() == "nameLabel"){
+                position_node.setTextContent("" + k);
             }
-            else
-                continue;
         }
         return marker_node;
     }
+    private Node createLabelsNode(Marker marker, Document document, int id) {
+        Element node = document.createElement("Label");
+        node.setAttribute("ID", "" + id);
+        Element nodeType = document.createElement("type");
+        Element nodeX = document.createElement("positionX");
+        Element nodeY = document.createElement("positionY");
+        Element nodeSize = document.createElement("size");
+        Element nodeColor = document.createElement("color");
+        Element nodeNameLabel = document.createElement("label");
 
+        if(marker.getClass() == LabelMarker.class){
+            nodeType.appendChild(document.createTextNode("-1"));
+            nodeNameLabel.appendChild(document.createTextNode(((LabelMarker)marker).getLabel()));
+        }else if(marker.getClass() == MeasureMarker.class){
+            nodeType.appendChild(document.createTextNode("0"));
+        }else if(marker.getClass() == AnchorMarker.class){
+            nodeType.appendChild(document.createTextNode("1"));
+            nodeNameLabel.appendChild(document.createTextNode("" + ((AnchorMarker)marker).getRealDistance()));
+        }else
+            return null;
+        nodeSize.appendChild(document.createTextNode("-1"));
+        nodeColor.appendChild(document.createTextNode("-1"));
+        nodeX.appendChild(document.createTextNode("0"));
+        nodeY.appendChild(document.createTextNode("0"));
+        node.appendChild(nodeType);
+        node.appendChild(nodeX);
+        node.appendChild(nodeY);
+        node.appendChild(nodeSize);
+        node.appendChild(nodeColor);
+        node.appendChild(nodeNameLabel);
+        return node;
+    }
+    private Node createLinesNode(Marker marker, Document document, int labelID, int lineID, int link1ID, int link2ID) {
+        Element node = document.createElement("line");
+        node.setAttribute("ID", "" + lineID);
+        Element nodeSize = document.createElement("size");
+        Element nodeColor = document.createElement("color");
+        Element nodeLinks = document.createElement("links");
+        Element nodeLink1 = document.createElement("link1");
+        Element nodeLink2 = document.createElement("link2");
+        Element nodeNumLabel = document.createElement("numLabel");
+
+        nodeLink1.appendChild(document.createTextNode("" + link1ID));
+        nodeLink2.appendChild(document.createTextNode("" + link2ID));
+        nodeLinks.appendChild(nodeLink1);
+        nodeLinks.appendChild(nodeLink2);
+        nodeSize.appendChild(document.createTextNode("-1"));
+        nodeColor.appendChild(document.createTextNode("-1"));
+        nodeNumLabel.appendChild(document.createTextNode("" + labelID));
+
+        node.appendChild(nodeSize);
+        node.appendChild(nodeColor);
+        node.appendChild(nodeLinks);
+        node.appendChild(nodeNumLabel);
+        return node;
+    }
     public Node writeDOM(Document document) {
         Element root = document.createElement("Draft");
         Element markers = document.createElement("markers");
+        Element lines = document.createElement("lines");
+        Element labels = document.createElement("labels");
+        int labelNum = 0, lineNum = 0;
         for(Marker marker : layer.markerManager.markers) {
-            Node marker_node = createMarkerNodeWithLayerScale(marker, document);
+            Node marker_node = createMarkerNodeWithLayerScale(marker, document, labelNum);
             markers.appendChild(marker_node);
+            Node label_node = createLabelsNode(marker, document, labelNum);
+            if(label_node != null) {
+                labels.appendChild(label_node);
+                labelNum++;
+            }
+            if(marker.getClass() == ControlMarker.class){
+                Node lines_node = createLinesNode(marker, document, labelNum - 1, lineNum, marker.getID(), ((ControlMarker)marker).getLinksFatherMarker().getID());
+                lines.appendChild(lines_node);
+                lineNum++;
+            }
         }
         root.appendChild(markers);
+        root.appendChild(lines);
+        root.appendChild(labels);
         return root;
     }
 }
