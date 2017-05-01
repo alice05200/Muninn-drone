@@ -134,6 +134,7 @@ public class MarkerXMLHandler {
                         switch(mode){
                             case 0:
                                 position_X = parser.getText();
+                                Log.d("AAAAAA", parser.getText());
                                 px = Float.parseFloat(position_X);
                                 break;
                             case 1:
@@ -170,6 +171,7 @@ public class MarkerXMLHandler {
                                 Log.d("labelTexts復原", parser.getText());
                                 break;
                         }
+                        mode = -1;
                         break;
                     case XmlPullParser.END_TAG://結尾
                         if(tagName.equals("positionY") && !markerDone){

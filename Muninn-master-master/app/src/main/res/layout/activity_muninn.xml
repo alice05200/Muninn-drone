@@ -16,7 +16,7 @@
         android:id="@+id/draft"
         android:background="#343232"
         android:layout_below="@+id/save"
-        android:layout_above="@+id/line_restart_button" />
+        android:layout_above="@+id/delete_button" />
 
     <Button
         android:layout_width="wrap_content"
@@ -26,14 +26,6 @@
         android:layout_alignParentBottom="true"
         android:visibility="invisible"
         android:layout_toEndOf="@+id/setting" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/line_restart_button"
-        android:background="@drawable/ic_refresh_1"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/undo_button" />
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -54,7 +46,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/sign"
         android:background="@drawable/ic_sign_1"
-        android:layout_below="@+id/draft"
+        android:layout_alignParentBottom="true"
         android:layout_toEndOf="@+id/move_mode" />
 
     <ImageView
@@ -71,7 +63,7 @@
         android:id="@+id/delete_button"
         android:background="@drawable/ic_delete_1"
         android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/redo_button" />
+        android:layout_toEndOf="@+id/auto_button" />
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -146,7 +138,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/move_huginn"
-        android:background="@android:drawable/btn_star_big_off"
+        android:background="@drawable/ic_huginn"
         android:layout_alignParentBottom="true"
         android:layout_toStartOf="@+id/setting" />
 

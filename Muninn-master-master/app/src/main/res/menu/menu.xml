@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/clear"
-        android:title="清除"/>
+        android:id="@+id/clear_line"
+        android:title="清除標線"/>
     <item
-        android:id="@+id/eraser"
-        android:title="橡皮擦"/>
+        android:id="@+id/clear_eraser"
+        android:title="清除草稿"/>
 </menu>

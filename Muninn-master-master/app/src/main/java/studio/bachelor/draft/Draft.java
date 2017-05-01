@@ -188,12 +188,12 @@ public class Draft{
             Node position_node = marker_node.getChildNodes().item(i);
             if(position_node.getNodeName() == "positionX") {
                 Double x = Double.parseDouble(position_node.getTextContent());
-                Double scale_x = x / (width / 2);
+                Double scale_x = (x + width / 2) / width; // (width / 2);
                 scale_x = (double)(Math.round(scale_x * 1000000)) / 1000000;
                 position_node.setTextContent(scale_x.toString());
             }else if(position_node.getNodeName() == "positionY") {
                 Double y = Double.parseDouble(position_node.getTextContent());
-                Double scale_y = y/ (height / 2);
+                Double scale_y = (y + height / 2 ) / height;// (height / 2);
                 scale_y = (double)(Math.round(scale_y * 1000000)) / 1000000;
                 position_node.setTextContent(scale_y.toString());
             }else if(marker.getClass() == LabelMarker.class && position_node.getNodeName() == "nameLabel"){

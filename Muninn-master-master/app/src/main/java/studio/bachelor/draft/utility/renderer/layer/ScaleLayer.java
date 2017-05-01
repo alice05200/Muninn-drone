@@ -1,8 +1,10 @@
 package studio.bachelor.draft.utility.renderer.layer;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import studio.bachelor.draft.utility.Position;
+import studio.bachelor.muninn.Muninn;
 
 /**
  * Created by BACHELOR on 2016/03/03.
@@ -10,6 +12,7 @@ import studio.bachelor.draft.utility.Position;
 public class ScaleLayer extends Layer {
     private final String TAG = "ScaleLayer";
     private float currentScale = 1.0f;
+    private boolean biggest = false, smallest = false;
 
     public ScaleLayer(float width, float height) {
         super(width, height);
@@ -26,9 +29,22 @@ public class ScaleLayer extends Layer {
     public void scale(float factor) {
         float tmp=currentScale;
         currentScale = currentScale + factor > 0.0f ? (currentScale + factor) : currentScale;//判斷式?true回傳:false回傳
-        if (currentScale>2||currentScale<0.2)//盈如 設定了圖片放大縮小的限制
+        if (currentScale>2)//盈如 設定了圖片放大縮小的限制
         {
-            currentScale=tmp;
+            if(!biggest) {
+                Toast.makeText(Muninn.getContext(), "已縮放到最大", Toast.LENGTH_SHORT).show();
+                biggest = true;
+            }
+            currentScale=2;
+        }else if(currentScale<0.2){
+            if(!smallest) {
+                Toast.makeText(Muninn.getContext(), "已縮放到最小", Toast.LENGTH_SHORT).show();
+                smallest = true;
+            }
+            currentScale=0.2f;
+        }else{
+            biggest = false;
+            smallest = false;
         }
         Log.d(TAG, "currentScale: " + currentScale);
     }
