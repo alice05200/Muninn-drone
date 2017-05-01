@@ -189,19 +189,32 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.clear_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//清除草稿
-                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-            }
-        });
-        findViewById(R.id.clear_button).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN){
-                    v.setBackgroundResource(R.drawable.ic_erase_2);
-                }
-                else if(event.getAction() == MotionEvent.ACTION_UP){
-                    v.setBackgroundResource(R.drawable.ic_erase_1);
-                }
-                return false;
+                changeMode(currentTool, Toolbox.Tool.ERASER);
+                findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_2);
+                picMode = 0;
+                changePic(preTool);
+                final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.clear_button));
+                popupmenu.getMenuInflater().inflate(R.menu.menu, popupmenu.getMenu());
+                popupmenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() { // 設定popupmenu項目點擊傾聽者
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()){
+                            case R.id.clear_eraser:
+                                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
+                                findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
+                                picMode = 1;
+                                changePic(preTool);
+                                changeMode(preTool, preTool);
+                                break;
+                            case R.id.clear_line:
+                                ClearLineDialog();
+                                break;
+                        }
+                        return true;
+                    }
+
+                });
+                popupmenu.show();
             }
         });
         findViewById(R.id.redo_button).setOnClickListener(new OnClickListener() {
@@ -261,7 +274,7 @@ public class MuninnActivity extends AppCompatActivity {
                 DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);
             }
         });
-        findViewById(R.id.line_restart_button).setOnClickListener(new OnClickListener() {//清除標線
+        /*findViewById(R.id.line_restart_button).setOnClickListener(new OnClickListener() {//清除標線
             @Override
             public void onClick(View v) {
                 ClearLineDialog();//警告
@@ -278,38 +291,10 @@ public class MuninnActivity extends AppCompatActivity {
                 }
                 return false;
             }
-        });
+        });*/
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-    }
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-
-        if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
-            ConfirmExit(); //呼叫ConfirmExit()函數
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-
-
-    public void ConfirmExit(){
-        android.app.AlertDialog.Builder ad=new android.app.AlertDialog.Builder(MuninnActivity.this); //創建訊息方塊
-        ad.setTitle("離開");
-        ad.setMessage("返回主選單");
-        ad.setPositiveButton("是", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
-            public void onClick(DialogInterface dialog, int i) {
-                Intent intent = new Intent(getApplicationContext(), SplashViewActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-        ad.setNegativeButton("否",new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
-            public void onClick(DialogInterface dialog, int i) {
-            }
-        });
-        ad.show();//顯示訊息視窗
     }
     /*清除標線警告dialog*/
     private void ClearLineDialog(){
@@ -320,6 +305,10 @@ public class MuninnActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_LINE);
+                        findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
+                        picMode = 1;
+                        changePic(preTool);
+                        changeMode(preTool, preTool);
                     }
                 })
                 .setNeutralButton(R.string.not_to_delete_line, new DialogInterface.OnClickListener() {
