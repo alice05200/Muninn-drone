@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <ListPreference
-        android:key="@string/key_marker_point_color"
-        android:title="標記點顏色"
-        android:entries="@array/color_name"
-        android:entryValues="@array/color" />
 
     <ListPreference
         android:key="@string/key_marker_line_color"
         android:title="標記線條顏色"
         android:entries="@array/color_name"
-        android:entryValues="@array/color" />
+        android:entryValues="@array/color"
+        />
 
     <ListPreference
         android:key="@string/key_marker_text_color"

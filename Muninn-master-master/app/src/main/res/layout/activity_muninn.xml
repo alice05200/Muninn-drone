@@ -37,13 +37,6 @@
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/upload"
-        android:background="@drawable/ic_upload_1"
-        android:layout_toStartOf="@+id/save" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/sign"
         android:background="@drawable/ic_sign_1"
         android:layout_alignParentBottom="true"
@@ -79,7 +72,7 @@
         android:id="@+id/label_button"
         android:background="@drawable/ic_text_1"
         android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/clear_button" />
+        android:layout_toEndOf="@+id/pen_button" />
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -94,14 +87,6 @@
         android:id="@+id/pen_button"
         android:background="@drawable/ic_pencil_1"
         android:layout_alignParentBottom="true" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/clear_button"
-        android:background="@drawable/ic_erase_1"
-        android:layout_alignTop="@+id/pen_button"
-        android:layout_toEndOf="@+id/pen_button" />
 
     <ImageButton
         android:layout_width="wrap_content"

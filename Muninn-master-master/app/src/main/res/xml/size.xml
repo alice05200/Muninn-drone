@@ -1,22 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <EditTextPreference
-        android:defaultValue="@string/default_marker_line_width"
-        android:key="@string/key_marker_point_radius"
-        android:title="標記點半徑"
-        android:inputType="numberDecimal" />
-
-    <EditTextPreference
+    <ListPreference
         android:defaultValue="@string/default_marker_point_radius"
         android:key="@string/key_marker_line_width"
-        android:title="標記線寬"
-        android:inputType="numberDecimal" />
-
-    <EditTextPreference
-        android:defaultValue="@string/default_marker_text_size"
-        android:key="@string/key_marker_text_size"
-        android:title="標記文字大小"
-        android:inputType="numberDecimal" />
+        android:title="標記尺寸"
+        android:entries="@array/size_name"
+        android:entryValues="@array/size_name" />
 
     <EditTextPreference
         android:defaultValue="@string/default_marker_selection_radius"

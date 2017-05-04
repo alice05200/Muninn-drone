@@ -222,8 +222,8 @@ public class Draft{
             nodeNameLabel.appendChild(document.createTextNode("" + ((AnchorMarker)marker).getRealDistance()));
         }else
             return null;
-        nodeSize.appendChild(document.createTextNode("-1"));
-        nodeColor.appendChild(document.createTextNode("-1"));
+        nodeSize.appendChild(document.createTextNode(marker.getSize()));
+        nodeColor.appendChild(document.createTextNode(marker.getColor()));
         nodeX.appendChild(document.createTextNode("0"));
         nodeY.appendChild(document.createTextNode("0"));
         node.appendChild(nodeType);
@@ -248,8 +248,8 @@ public class Draft{
         nodeLink2.appendChild(document.createTextNode("" + link2ID));
         nodeLinks.appendChild(nodeLink1);
         nodeLinks.appendChild(nodeLink2);
-        nodeSize.appendChild(document.createTextNode("-1"));
-        nodeColor.appendChild(document.createTextNode("-1"));
+        nodeSize.appendChild(document.createTextNode(marker.getSize()));
+        nodeColor.appendChild(document.createTextNode(marker.getColor()));
         nodeNumLabel.appendChild(document.createTextNode("" + labelID));
 
         node.appendChild(nodeSize);
