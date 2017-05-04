@@ -40,6 +40,7 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.move_huginn).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                Muninn.mVibrator.vibrate(100);
                 if(appInstalledOrNot("studio.bachelor.huginn")) {
                     Intent intent = getPackageManager().getLaunchIntentForPackage("studio.bachelor.huginn");
                     startActivity(intent);
@@ -49,6 +50,7 @@ public class MuninnActivity extends AppCompatActivity {
         });
         findViewById(R.id.select_photo).setOnClickListener(new OnClickListener() {//選擇影像
             public void onClick(View view) {//選擇照片
+                Muninn.mVibrator.vibrate(100);
                 switchToGallery();
                 Toast.makeText(getApplicationContext(), "請選擇照片", Toast.LENGTH_SHORT).show();
                 DraftDirector.instance.selectTool(currentTool);
@@ -69,6 +71,7 @@ public class MuninnActivity extends AppCompatActivity {
         });
         findViewById(R.id.setting).setOnClickListener(new OnClickListener() {
             public void onClick(View view) {//參數設定
+                Muninn.mVibrator.vibrate(100);
                 switchToSetting();
             }
         });
@@ -87,6 +90,8 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.save).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//儲存至本地
+                Muninn.mVibrator.vibrate(100);
+                Toast.makeText(getApplicationContext(), "開始儲存，靜候完成訊息。", Toast.LENGTH_SHORT).show();
                 DraftDirector.instance.exportToZip();
             }
         });
@@ -105,6 +110,8 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.sign).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//簽名
+                Muninn.mVibrator.vibrate(100);
+
                 DraftDirector.instance.showSignPad(context);
             }
         });
@@ -120,24 +127,7 @@ public class MuninnActivity extends AppCompatActivity {
                 return false;
             }
         });
-        findViewById(R.id.upload).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {//上傳至雲端
-                switchToZIPBrowsing();
-            }
-        });
-        findViewById(R.id.upload).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN){
-                    v.setBackgroundResource(R.drawable.ic_upload_2);
-                }
-                else if(event.getAction() == MotionEvent.ACTION_UP){
-                    v.setBackgroundResource(R.drawable.ic_upload_1);
-                }
-                return false;
-            }
-        });
+
         findViewById(R.id.btnSound).setSoundEffectsEnabled(false);//不履行預設button音效
         findViewById(R.id.btnSound).setOnClickListener(new OnClickListener() {
             @Override
@@ -149,6 +139,8 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.label_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//標籤
+                Muninn.mVibrator.vibrate(100);
+                Toast.makeText(getApplicationContext(), "點兩下新增標籤", Toast.LENGTH_SHORT).show();
                 changeMode(currentTool, Toolbox.Tool.MARKER_TYPE_LABEL);
                 findViewById(R.id.label_button).setBackgroundResource(R.drawable.ic_text_2);
                 picMode = 0;
@@ -159,6 +151,8 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.auto_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//自動標線
+                Muninn.mVibrator.vibrate(100);
+                Toast.makeText(getApplicationContext(), "點兩下新增標線", Toast.LENGTH_SHORT).show();
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_LINK);
                 findViewById(R.id.auto_button).setBackgroundResource(R.drawable.ic_distance_auto_2);
                 picMode = 0;
@@ -169,6 +163,8 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.line_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//標線
+                Muninn.mVibrator.vibrate(100);
+                Toast.makeText(getApplicationContext(), "點兩下新增比例尺", Toast.LENGTH_SHORT).show();
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_ANCHOR);
                 findViewById(R.id.line_button).setBackgroundResource(R.drawable.ic_distance_2);
                 picMode = 0;
@@ -179,48 +175,21 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.pen_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//草稿線
+                Muninn.mVibrator.vibrate(100);
                 changeMode(currentTool, Toolbox.Tool.PATH_MODE);
+                Toast.makeText(getApplicationContext(), "草稿模式", Toast.LENGTH_SHORT).show();
                 findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_2);
                 picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.PATH_MODE);
             }
         });
-        findViewById(R.id.clear_button).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {//清除草稿
-                changeMode(currentTool, Toolbox.Tool.ERASER);
-                findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_2);
-                picMode = 0;
-                changePic(preTool);
-                final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.clear_button));
-                popupmenu.getMenuInflater().inflate(R.menu.menu, popupmenu.getMenu());
-                popupmenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() { // 設定popupmenu項目點擊傾聽者
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()){
-                            case R.id.clear_eraser:
-                                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-                                findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
-                                picMode = 1;
-                                changePic(preTool);
-                                changeMode(preTool, preTool);
-                                break;
-                            case R.id.clear_line:
-                                ClearLineDialog();
-                                break;
-                        }
-                        return true;
-                    }
-
-                });
-                popupmenu.show();
-            }
-        });
         findViewById(R.id.redo_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//取消復原
+                Muninn.mVibrator.vibrate(100);
                 DraftDirector.instance.selectTool(Toolbox.Tool.EDIT_REDO);
+                Toast.makeText(getApplicationContext(), "取消復原", Toast.LENGTH_SHORT).show();
             }
         });
         findViewById(R.id.redo_button).setOnTouchListener(new View.OnTouchListener() {
@@ -238,6 +207,8 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.undo_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//復原
+                Muninn.mVibrator.vibrate(100);
+                Toast.makeText(getApplicationContext(), "復原", Toast.LENGTH_SHORT).show();
                 DraftDirector.instance.selectTool(Toolbox.Tool.EDIT_UNDO);
             }
         });
@@ -256,18 +227,56 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.delete_button).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//刪除特定標線標籤
-                changeMode(currentTool, Toolbox.Tool.DELETER);
-                findViewById(R.id.delete_button).setBackgroundResource(R.drawable.ic_delete_2);
-                picMode = 0;
-                changePic(preTool);
-                DraftDirector.instance.selectTool(Toolbox.Tool.DELETER);
-                Toast.makeText(getApplicationContext(), "長按物件點移除", Toast.LENGTH_SHORT).show();
+                Muninn.mVibrator.vibrate(100);
+                final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.delete_button));
+                popupmenu.getMenuInflater().inflate(R.menu.menu, popupmenu.getMenu());
+                popupmenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() { // 設定popupmenu項目點擊傾聽者
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()){
+                            case R.id.clear_eraser:
+                                Muninn.mVibrator.vibrate(100);
+                                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
+                                Toast.makeText(getApplicationContext(), "已清除草搞", Toast.LENGTH_SHORT).show();
+                                break;
+                            case R.id.clear_line:
+                                Muninn.mVibrator.vibrate(100);
+                                ClearLineDialog();
+                                break;
+                            case R.id.delete_line:
+                                Muninn.mVibrator.vibrate(100);
+                                DraftDirector.instance.selectTool(Toolbox.Tool.DELETER);
+                                changeMode(currentTool, Toolbox.Tool.DELETER);
+                                findViewById(R.id.delete_button).setBackgroundResource(R.drawable.ic_delete_2);
+                                picMode = 0;
+                                changePic(preTool);
+                                Toast.makeText(getApplicationContext(), "長按物件點移除", Toast.LENGTH_SHORT).show();
+                                break;
+                        }
+                        return true;
+                    }
+                });
+                popupmenu.show();
+            }
+        });
+        findViewById(R.id.delete_button).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN){
+                    v.setBackgroundResource(R.drawable.ic_delete_2);
+                }
+                else if(event.getAction() == MotionEvent.ACTION_UP){
+                    v.setBackgroundResource(R.drawable.ic_delete_1);
+                }
+                return false;
             }
         });
         findViewById(R.id.move_mode).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {//拖曳模式
+                Muninn.mVibrator.vibrate(100);
                 changeMode(currentTool, Toolbox.Tool.HAND_MOVE);
+                Toast.makeText(getApplicationContext(), "拖曳模式", Toast.LENGTH_SHORT).show();
                 findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
                 picMode = 0;
                 changePic(preTool);
@@ -304,16 +313,14 @@ public class MuninnActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Muninn.mVibrator.vibrate(100);
                         DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_LINE);
-                        findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
-                        picMode = 1;
-                        changePic(preTool);
-                        changeMode(preTool, preTool);
                     }
                 })
                 .setNeutralButton(R.string.not_to_delete_line, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Muninn.mVibrator.vibrate(100);
                     }
                 })
                 .show();
@@ -374,9 +381,6 @@ public class MuninnActivity extends AppCompatActivity {
                     case PATH_MODE:
                         findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_1);
                         break;
-                    case ERASER:
-                        findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_1);
-                        break;
                     case HAND_MOVE:
                         findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_1);
                         break;
@@ -401,9 +405,6 @@ public class MuninnActivity extends AppCompatActivity {
                     case PATH_MODE:
                         findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_2);
                         break;
-                    case ERASER:
-                        findViewById(R.id.clear_button).setBackgroundResource(R.drawable.ic_erase_2);
-                        break;
                     case HAND_MOVE:
                         findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
                         break;
@@ -422,7 +423,6 @@ public class MuninnActivity extends AppCompatActivity {
             return true;
         } catch (PackageManager.NameNotFoundException e) {
         }
-
         return false;
     }
 }

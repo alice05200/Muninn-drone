@@ -77,6 +77,7 @@ import studio.bachelor.draft.utility.renderer.builder.MarkerRendererBuilder;
 import studio.bachelor.muninn.FTPUtils;
 import studio.bachelor.muninn.Muninn;
 import studio.bachelor.muninn.MuninnActivity;
+import studio.bachelor.muninn.R;
 import studio.bachelor.utility.FTPUploader;
 import studio.bachelor.utility.MarkerXMLHandler;
 
@@ -114,7 +115,7 @@ public class DraftDirector {
     private Toolbox.Tool currentMode = Toolbox.Tool.HAND_MOVE, preMode = Toolbox.Tool.HAND_MOVE;
     private MarkerXMLHandler markerXMLHandler = new MarkerXMLHandler();
 
-    private String filename;
+    private String filename = null;
     private final String MUNINN_FILE = "Muninn";
     boolean firstTime = true; //Create後，firstTime = false; Delete後，firstTime = true
     boolean edit_mode = false;
@@ -145,7 +146,6 @@ public class DraftDirector {
         draft.clearPaths();
         draft.layer.setScale(1);
         edit_mode = false;
-        nextObjectID = 0;
         Position screenCenter = new Position(0,0);
         this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
         try {
@@ -164,7 +164,7 @@ public class DraftDirector {
         draft.setWidth(birdview.getWidth()); //setting the width-size of draft according to the birdview.
         draft.setHeight(birdview.getHeight());
         rendererManager.setBitmap(birdview);
-        if(uri.toString().indexOf("Muninn") != -1) {//檢查檔案是否在之前的專案
+        if(uri.toString().indexOf("Muninn") != -1 && uri.toString().indexOf("birdview") != -1) {//檢查檔案是否在之前的專案
             markerXMLHandler.cleanList();
             i = 0;
             edit_mode = true;
@@ -191,7 +191,6 @@ public class DraftDirector {
         //if(MD5EncoderThread != null)
         //    MD5EncoderThread.interrupt();
         //birdViewUri = uri;
-
         Date current_time = new Date();
         SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHHmmss");
         filename = "Draft" + simple_date_format.format(current_time);//資料夾名稱預設Draft+時間
@@ -287,6 +286,8 @@ public class DraftDirector {
     public void addMarker(Position position) {
         Muninn.sound_Ding.seekTo(0);
         Muninn.sound_Ding.start();
+        if(tool != Toolbox.Tool.PATH_MODE)
+            Muninn.mVibrator.vibrate(100);
 
       if(enablePosition(position))
       {
@@ -313,13 +314,14 @@ public class DraftDirector {
                 .setMessage("警告 !  \n重新設定值，將會更改所有標線比例。")
                 .setPositiveButton("確定", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        Muninn.mVibrator.vibrate(100);
                         addAnchorMarker(position, false);  //已存在一個AnchorMarker，重新新增的
                     }
                 })
                 .setNeutralButton("取消", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        Muninn.mVibrator.vibrate(100);
                     }
                 })
                 .show();
@@ -341,6 +343,7 @@ public class DraftDirector {
                     .setView(edit_text)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            Muninn.mVibrator.vibrate(100);
                             String label_str = edit_text.getText().toString();
                             if (label_str.isEmpty())
                                 return;
@@ -349,11 +352,12 @@ public class DraftDirector {
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            Muninn.mVibrator.vibrate(100);
                             ((LabelMarker) marker).remove();
                         }
                     }).show();
+                //marker.setSizeColor("" +  Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color));
         }else {
-            marker.setID(markerXMLHandler.getMarkers().get(i).getID());
             ((LabelMarker) marker).setLabel(((LabelMarker) markerXMLHandler.getMarkers().get(i)).getLabel());
         }
         draft.addMarker(marker);
@@ -414,8 +418,8 @@ public class DraftDirector {
         //  取得AnchorMarker與ControlMaker
         final Marker marker = AnchorMarker.getInstance();
         Marker linked;
+        marker.setSizeColor("" + Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width), Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color));
         if(edit_mode) {
-            marker.setID(markerXMLHandler.getMarkers().get(i).getID());
             markerXMLHandler.getMarkers().get(i + 1).position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x * birdview.getWidth() - birdview.getWidth() / 2 + draft.layer.getCenter().x,
                     markerXMLHandler.getPositions().get(i + 1).y * birdview.getHeight()  - birdview.getHeight() / 2 + draft.layer.getCenter().y));
             markerXMLHandler.getMarkers().get(i + 1).refreshed_tap_position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x * birdview.getWidth() - birdview.getWidth() / 2 + draft.layer.getCenter().x,
@@ -423,7 +427,7 @@ public class DraftDirector {
             ((AnchorMarker) marker).setLink(markerXMLHandler.getMarkers().get(i + 1));
         }
         linked = AnchorMarker.getInstance().getLink(); //this link was created by marker.
-
+        linked.setSizeColor("" + Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width), Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color));
         if (renderableMap.containsKey(marker) && renderableMap.containsKey(linked)) {
             rendererManager.removeRenderer(renderableMap.get(marker));
             rendererManager.removeRenderer(renderableMap.get(linked));
@@ -439,10 +443,11 @@ public class DraftDirector {
                     .setView(edit_text)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            Muninn.mVibrator.vibrate(100);
                             String distance_str = edit_text.getText().toString();
                             Log.d(TAG, "distance string=======================================> " + distance_str);
                             if (distance_str.isEmpty())
-                                return;
+                                distance_str = "10";
 
                             ((AnchorMarker) marker).setRealDistance(Double.parseDouble(distance_str));
                             AnchorMarker.historyDistancesUndo.addLast(Double.parseDouble(distance_str)); //新增第一個distance至history
@@ -450,7 +455,6 @@ public class DraftDirector {
                     })
                     .show();
         }else {
-            linked.setID(markerXMLHandler.getMarkers().get(i + 1).getID());
             ((AnchorMarker) marker).setRealDistance(((AnchorMarker) markerXMLHandler.getMarkers().get(i)).getRealDistance());
         }
 
@@ -552,8 +556,10 @@ public class DraftDirector {
         if (marker == null) //abstract "Marker" will call one time.
             return;
         if (renderableMap.containsKey(marker)) { //檢查Map是否有此marker，有則刪除
-            if(marker.getClass() == AnchorMarker.class)
+            if(marker.getClass() == AnchorMarker.class) {
                 firstTime = true;
+                ((AnchorMarker)marker).setRealDistance(0);
+            }
             Log.d(TAG, "renderableMap contain!!");
             Renderable renderable = renderableMap.get(marker); //取得此marker的renderable
             rendererManager.removeRenderer(renderable); //刪除renderObjects裡的render_object
@@ -583,11 +589,10 @@ public class DraftDirector {
                 setPosition(position).
                 setLink(linked). //儲存linked marker，並且告知linked誰是他老爸marker
                 build(); //return Marker
+        int a = marker.getID();
+        marker.setID(linked.getID());
+        linked.setID(a);
 
-        if(edit_mode) {
-            linked.setID(markerXMLHandler.getMarkers().get(i + 1).getID());
-            marker.setID(markerXMLHandler.getMarkers().get(i).getID());
-        }
         ((ControlMarker)linked).setMarker(marker); //tell linked who is his daddy
 
         Log.d(TAG, "linked: (" + linked.refreshed_tap_position.x + ", " + linked.refreshed_tap_position.y + ") marker: (" + marker.refreshed_tap_position.x + ", " + marker.refreshed_tap_position.y + ")");
@@ -708,6 +713,7 @@ public class DraftDirector {
             Muninn.sound_Ding.seekTo(0); //重至0毫秒
             Muninn.sound_Ding.start();
             this.tool = tool; //assigned selected component
+
         }
 
         switch (tool) {
@@ -741,19 +747,25 @@ public class DraftDirector {
                 currentMode = preMode;
                 selectTool(currentMode);
                 break;
-            case ERASER:
+            case PATH_MODE:
+                markerType = null;
                 break;
         }
     }
 
 
     private void clearAllLine(){
+        for(Marker marker : draft.layer.markerManager.markers){
+            if(marker.getClass() == AnchorMarker.class)
+                ((AnchorMarker)marker).setRealDistance(0);
+        }
         renderableMap.clear();
         rendererManager.renderObjects.clear();
         StepByStepRedo.clear();
         StepByStepUndo.clear();
         draft.layer.markerManager.markers.clear();
         firstTime=true;
+
     }//清除所有標線、標籤
     private void doUndoTask() {
 
@@ -996,6 +1008,7 @@ public class DraftDirector {
     public void holdMarker(Marker marker) { //The Marker will be hold after long pressing
         Muninn.sound_Ding.seekTo(0); //重至0毫秒
         Muninn.sound_Ding.start();
+        Muninn.mVibrator.vibrate(100);
         markerHold = marker;
     }
 
@@ -1251,10 +1264,12 @@ public class DraftDirector {
         Toast.makeText(Muninn.getContext(), string, is_short ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
     }
 
-    private File makeDirectory() {//製作資料夾 0為製作簽名檔資料夾 1為製作圖片資料夾
+    private File makeDirectory() {
         File directory = new File(Environment.getExternalStorageDirectory(), MUNINN_FILE);
         if(!directory.exists())//創Muninn資料夾
             directory.mkdir();
+        if(filename == null)
+            return null;
         File new_directory = new File(directory, filename);
         if (!new_directory.exists())
             new_directory.mkdir();
@@ -1269,30 +1284,35 @@ public class DraftDirector {
                 //MD5EncoderThread.join();
                 //MD5 = MD5Encoder.getResult();
                 final File directory = makeDirectory();
-                new AlertDialog.Builder(context)
-                        .setTitle("簽名 請註記")
-                        .setView(signpad)
-                        .setPositiveButton("儲存", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                final Bitmap bitmap = signpad.exportBitmapRenderedOnCanvas();
-                                Date date = new Date();
-                                SimpleDateFormat date_format = new SimpleDateFormat("yyyyMMddHHmmss");
-                                String filename = date_format.format(date);
-                                try {
-                                    File file = new File(directory, "signature_"  + filename + ".png");
-                                    FileOutputStream output_stream = new FileOutputStream(file);
-                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, output_stream);
-                                    output_stream.flush();
-                                    output_stream.close();
-                                    showToast("儲存成功", true);
-                                    signFiles.add(file);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                if(directory == null)
+                    showToast("請開啟圖片", false);
+                else {
+                    new AlertDialog.Builder(context)
+                            .setTitle("簽名 請註記")
+                            .setView(signpad)
+                            .setPositiveButton("儲存", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Muninn.mVibrator.vibrate(100);
+                                    final Bitmap bitmap = signpad.exportBitmapRenderedOnCanvas();
+                                    Date date = new Date();
+                                    SimpleDateFormat date_format = new SimpleDateFormat("yyyyMMddHHmmss");
+                                    String filename = date_format.format(date);
+                                    try {
+                                        File file = new File(directory, "signature_" + filename + ".png");
+                                        FileOutputStream output_stream = new FileOutputStream(file);
+                                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, output_stream);
+                                        output_stream.flush();
+                                        output_stream.close();
+                                        showToast("簽名儲存成功", true);
+                                        signFiles.add(file);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
-                            }
-                        })
-                        .show();
+                            })
+                            .show();
+                }
             //}
             //else {
             //    showToast("請開啟影像", true);
@@ -1382,12 +1402,13 @@ public class DraftDirector {
     }
 
     public void exportToZip() {//儲存至本地 用ZIP檔儲存
+        if(signFiles.isEmpty()) {
+            showToast("尚未簽名，儲存失敗", false);
+            return;
+        }
         File directory = makeDirectory();
         File data_file = exportToDOM(directory);
-
-
         Muninn.soundPlayer.start();
-        showToast("開始儲存，靜候完成訊息。", true);
         if (data_file.exists()) {
             try {
                 Date current_time = new Date();
