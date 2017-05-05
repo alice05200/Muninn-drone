@@ -15,7 +15,10 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import org.apache.commons.net.ftp.FTP;
@@ -194,6 +197,17 @@ public class DraftDirector {
         Date current_time = new Date();
         SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHHmmss");
         filename = "Draft" + simple_date_format.format(current_time);//資料夾名稱預設Draft+時間
+
+
+        Toast toast = Toast.makeText(context.getApplicationContext(), "請選擇功能編輯", Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.BOTTOM,-200,200);
+        LinearLayout toastView = (LinearLayout) toast.getView();
+        ImageView imageCodeProject = new ImageView(context.getApplicationContext());
+        imageCodeProject.setImageResource(R.drawable.ic_down);
+        toastView.addView(imageCodeProject, 0);
+        toast.show();
+
+
     }
 
     public void setWidthAndHeight(float width, float height) {
@@ -403,8 +417,8 @@ public class DraftDirector {
         MarkerRendererBuilder mrb = new MarkerRendererBuilder();
         Renderable marker_renderer = mrb.
                 setReference(tMarker).
-                setPoint(tMarker).
-                setText(new MapString((LabelMarker) tMarker), tMarker.position).
+                setPoint(tMarker, Float.parseFloat(tMarker.getSize()), tMarker.getColor()).
+                setText(new MapString((LabelMarker) tMarker), tMarker.position, Float.parseFloat(tMarker.getSize())).
                 build();
 
         rendererManager.addRenderer(marker_renderer);
@@ -427,7 +441,7 @@ public class DraftDirector {
             ((AnchorMarker) marker).setLink(markerXMLHandler.getMarkers().get(i + 1));
         }
         linked = AnchorMarker.getInstance().getLink(); //this link was created by marker.
-        linked.setSizeColor("" + Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width), Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color));
+        linked.setSizeColor("" + (int)Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width), Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color));
         if (renderableMap.containsKey(marker) && renderableMap.containsKey(linked)) {
             rendererManager.removeRenderer(renderableMap.get(marker));
             rendererManager.removeRenderer(renderableMap.get(linked));
@@ -532,10 +546,10 @@ public class DraftDirector {
         //  建立MakerRenderer
         MarkerRendererBuilder mrb = new MarkerRendererBuilder();
         Renderable marker_renderer = mrb.
-                setLinkLine((LinkMarker) marker). //set head and tail
+                setLinkLine((LinkMarker) marker, Float.parseFloat(marker.getSize()), marker.getColor()). //set head and tail
                 setReference(marker). //參考marker
-                setPoint(marker).
-                setText(new MapString((AnchorMarker) marker), position_list).
+                setPoint(marker, Float.parseFloat(marker.getSize()), marker.getColor()).
+                setText(new MapString((AnchorMarker) marker), position_list, Float.parseFloat(marker.getSize())).
                 build();
 
         Renderable link_renderer = mrb.
@@ -654,10 +668,10 @@ public class DraftDirector {
         //  建立MakerRenderer
         MarkerRendererBuilder mrb = new MarkerRendererBuilder();
         Renderable marker_renderer = mrb.
-                setLinkLine((LinkMarker) marker).
+                setLinkLine((LinkMarker) marker, Float.parseFloat(marker.getSize()), marker.getColor()).
                 setReference(marker).
-                setPoint(marker).
-                setText(new MapString((MeasureMarker) marker), position_list).
+                setPoint(marker, Float.parseFloat(marker.getSize()), marker.getColor()).
+                setText(new MapString((MeasureMarker) marker), position_list, Float.parseFloat(marker.getSize())).
                 build();
 
         Renderable link_renderer = mrb.
@@ -758,7 +772,6 @@ public class DraftDirector {
         for(Marker marker : draft.layer.markerManager.markers){
             if(marker.getClass() == AnchorMarker.class)
                 ((AnchorMarker)marker).setRealDistance(0);
-
         }
         renderableMap.clear();
         rendererManager.renderObjects.clear();
@@ -1157,7 +1170,13 @@ public class DraftDirector {
 
     public void zoomDraft(float scale_offset) {
         if(tool != Toolbox.Tool.PATH_MODE && markerHold == null) {
-            this.draft.layer.scale(scale_offset);
+            if (scale_offset<0&&this.draft.layer.getScale()<=1) {
+                if (scale_offset<0&&this.draft.layer.getScale()<=0.5)
+                    this.draft.layer.scale(-0.008f);
+                else
+                    this.draft.layer.scale(-0.018f);
+            }else{
+                this.draft.layer.scale(scale_offset);}
           edge();
         }
     }

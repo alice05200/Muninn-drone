@@ -36,6 +36,16 @@ public class Point implements Renderable {
         this.position = position;
     }
 
+    public Point(Position position, float size, String color){
+        this.position = position;
+        radius = size * 5;
+        paint.setAntiAlias(true);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setColor(Color.parseColor(color));
+        paint.setAlpha(180);
+        setRadius(radius);
+    }
+
     public void setRadius(float radius) {
         this.radius = radius;
         paint.setStrokeWidth(this.radius * 2);

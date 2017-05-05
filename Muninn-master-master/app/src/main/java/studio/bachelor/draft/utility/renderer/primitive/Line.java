@@ -16,7 +16,7 @@ import studio.bachelor.muninn.R;
  * Created by BACHELOR on 2016/03/01.
  */
 public class Line implements Renderable {
-    private int width;
+    private float width;
     public final Position head;
     public final Position tail;
     public final Paint paint = new Paint();
@@ -40,7 +40,18 @@ public class Line implements Renderable {
         this.tail = tail;
     }
 
-    public void setWidth(int width) {
+    public Line(Position head, Position tail, float size, String color) {
+        this.head = head;
+        this.tail = tail;
+        width = size * 5;
+        paint.setAntiAlias(true);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setColor(Color.parseColor(color));
+        setWidth(width);
+    }
+
+
+    public void setWidth(float width) {
         this.width = width;
         paint.setStrokeWidth(this.width);
     }

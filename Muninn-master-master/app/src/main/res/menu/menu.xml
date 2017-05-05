@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Transparent">
     <item
         android:id="@+id/delete_line"
-        android:title="移除標線"/>
+        android:title="移除物件"
+         />
     <item
         android:id="@+id/clear_line"
-        android:title="清除標線"/>
+        android:title="清除所有標線"/>
     <item
         android:id="@+id/clear_eraser"
-        android:title="清除草稿"/>
+        android:title="清除草稿線"/>
 </menu>

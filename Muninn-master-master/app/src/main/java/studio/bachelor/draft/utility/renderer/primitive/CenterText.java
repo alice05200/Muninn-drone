@@ -31,6 +31,10 @@ public class CenterText extends Text {
         super(string);
         this.positions.addAll(positions);
     }
+    public CenterText(MapString string, List<Position> positions, float size) {
+        super(string, size);
+        this.positions.addAll(positions);
+    }
 
     private void updatePosition() {
         double x_sum = 0;

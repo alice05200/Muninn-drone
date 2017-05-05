@@ -38,7 +38,7 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     protected static DraftDirector director = DraftDirector.instance;
     private boolean locked = false;
     private int ID;
-    private String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), size = "" + Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width);
+    private String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), size = "" + (int)Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width);
     /**
      * 目前的選取狀態({@link studio.bachelor.draft.utility.Selectable.State})，預設為未選取。
      */

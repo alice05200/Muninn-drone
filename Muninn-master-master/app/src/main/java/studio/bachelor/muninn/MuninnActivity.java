@@ -11,12 +11,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import studio.bachelor.draft.DraftDirector;
@@ -32,6 +35,17 @@ public class MuninnActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_muninn);
+
+
+        Toast toast = Toast.makeText(getApplicationContext(), "  請選擇圖片", Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.LEFT | Gravity.TOP,-20,50);
+        LinearLayout toastView = (LinearLayout) toast.getView();
+        toastView.setBackgroundColor(getResources().getColor(R.color.none));
+        ImageView imageCodeProject = new ImageView(getApplicationContext());
+        imageCodeProject.setImageResource(R.drawable.ic_up);
+        toastView.addView(imageCodeProject, 0);
+        toast.show();
+
 
         final Context context = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -52,7 +66,6 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View view) {//選擇照片
                 Muninn.mVibrator.vibrate(100);
                 switchToGallery();
-                Toast.makeText(getApplicationContext(), "請選擇照片", Toast.LENGTH_SHORT).show();
                 DraftDirector.instance.selectTool(currentTool);
 
             }
@@ -177,7 +190,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//草稿線
                 Muninn.mVibrator.vibrate(100);
                 changeMode(currentTool, Toolbox.Tool.PATH_MODE);
-                Toast.makeText(getApplicationContext(), "草稿模式", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "鉛筆功能", Toast.LENGTH_SHORT).show();
                 findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_2);
                 picMode = 0;
                 changePic(preTool);
@@ -189,7 +202,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//取消復原
                 Muninn.mVibrator.vibrate(100);
                 DraftDirector.instance.selectTool(Toolbox.Tool.EDIT_REDO);
-                Toast.makeText(getApplicationContext(), "取消復原", Toast.LENGTH_SHORT).show();
+
             }
         });
         findViewById(R.id.redo_button).setOnTouchListener(new View.OnTouchListener() {
@@ -208,7 +221,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//復原
                 Muninn.mVibrator.vibrate(100);
-                Toast.makeText(getApplicationContext(), "復原", Toast.LENGTH_SHORT).show();
+                
                 DraftDirector.instance.selectTool(Toolbox.Tool.EDIT_UNDO);
             }
         });
