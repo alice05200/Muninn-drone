@@ -17,6 +17,8 @@ import studio.bachelor.draft.utility.Selectable;
 import studio.bachelor.draft.utility.Touchable;
 import studio.bachelor.draft.utility.Position;
 import studio.bachelor.draft.utility.renderer.layer.Layer;
+import studio.bachelor.muninn.Muninn;
+import studio.bachelor.muninn.R;
 
 /**
  * <code>Marker</code>，作為<code>Draft</code>上所顯示的標記。
@@ -36,6 +38,7 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     protected static DraftDirector director = DraftDirector.instance;
     private boolean locked = false;
     private int ID;
+    private String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), size = "" + Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width);
     /**
      * 目前的選取狀態({@link studio.bachelor.draft.utility.Selectable.State})，預設為未選取。
      */
@@ -151,10 +154,10 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
         nodeY.appendChild(document.createTextNode("" + this.position.y));
         node.appendChild(nodeY);
         Element nodeSize = document.createElement("size");
-        nodeSize.appendChild(document.createTextNode("-1"));
+        nodeSize.appendChild(document.createTextNode(size));
         node.appendChild(nodeSize);
         Element nodeColor = document.createElement("color");
-        nodeColor.appendChild(document.createTextNode("-1"));
+        nodeColor.appendChild(document.createTextNode(color));
         node.appendChild(nodeColor);
         Element nodeNameLabel = document.createElement("nameLabel");
         nodeNameLabel.appendChild(document.createTextNode("-1"));
@@ -165,8 +168,18 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     public int getID() {
         return ID;
     }
-    public void setID(int i){
-        ID = i;
+    public void setID(int ID){
+        this.ID = ID;
+    }
+    public void setSizeColor(String size, String color){
+        this.size = size;
+        this.color = color;
+    }
+    public String getColor(){
+        return color;
+    }
+    public String getSize(){
+        return size;
     }
 //    public void changeCRUDstate(CRUD state) {
 //        this.crud = state;

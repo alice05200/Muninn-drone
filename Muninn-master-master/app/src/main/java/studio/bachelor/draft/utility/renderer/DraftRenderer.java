@@ -29,21 +29,12 @@ public class DraftRenderer implements Renderable {
     private Bitmap birdview;
     private final Paint paint = new Paint(); //for image
     private final Paint pathPaint = new Paint(); //for path(草稿線)
-    private Paint eraserPaint = new Paint();
     private boolean ableToPaint = true;
-    private boolean toMiddle = true;
 
     { //path會依據Paint的設定，呈現不同線條
         pathPaint.setStrokeCap(Paint.Cap.ROUND);
         pathPaint.setStrokeWidth(5.0f);
         pathPaint.setStyle(Paint.Style.STROKE);
-        eraserPaint.setAlpha(0);
-        eraserPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
-        eraserPaint.setAntiAlias(true);
-        eraserPaint.setDither(true);
-        eraserPaint.setStyle(Paint.Style.STROKE);
-        eraserPaint.setStrokeJoin(Paint.Join.ROUND);
-        eraserPaint.setStrokeWidth(5.0f);
     }
 
     public DraftRenderer(Draft draft) {

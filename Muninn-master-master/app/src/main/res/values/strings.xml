@@ -30,7 +30,7 @@
     <string name="key_marker_selection_radius">marker_selection_radius</string>
 
     <string name="default_marker_point_radius">10.0</string>
-    <string name="default_marker_line_width">7.5</string>
+    <string name="default_marker_line_width">1</string>
     <string name="default_marker_text_size">20.0</string>
     <string name="default_marker_selection_radius">10.0</string>
 
@@ -44,10 +44,10 @@
     <string name="default_marker_text_color">#000000</string>
 
     <string name="key_marker_selecting_color">marker_selecting_color</string>
-    <string name="default_marker_selecting_color">#FF0000</string>
+    <string name="default_marker_selecting_color">#ff0000</string>
 
     <string name="key_marker_selected_color">marker_selected_color</string>
-    <string name="default_marker_selected_color">#AA0000</string>
+    <string name="default_marker_selected_color">#aa0000</string>
 
     <string-array name="color_name">
         <item>黑</item>
@@ -60,14 +60,27 @@
         <item>深綠</item>
     </string-array>
 
+    <string-array name="size_name">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+
     <string-array name="color">
         <item>#000000</item>
-        <item>#FFFFFF</item>
-        <item>#FF0000</item>
-        <item>#0000FF</item>
-        <item>#00FF00</item>
-        <item>#AA0000</item>
-        <item>#0000AA</item>
-        <item>#00AA00</item>
+        <item>#ffffff</item>
+        <item>#ff0000</item>
+        <item>#0000ff</item>
+        <item>#00ff00</item>
+        <item>#aa0000</item>
+        <item>#0000aa</item>
+        <item>#00aa00</item>
     </string-array>
 </resources>

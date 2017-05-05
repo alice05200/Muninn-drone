@@ -67,6 +67,7 @@ public class MotionHandler {
                     if(marker != null) {
                         Muninn.sound_Punch.seekTo(0); //重至0毫秒
                         Muninn.sound_Punch.start();
+                        Muninn.mVibrator.vibrate(100);
                         DraftDirector.StepByStepUndo.addLast(new DataStepByStep(marker, Selectable.CRUD.DELETE));
 
                         marker.remove();

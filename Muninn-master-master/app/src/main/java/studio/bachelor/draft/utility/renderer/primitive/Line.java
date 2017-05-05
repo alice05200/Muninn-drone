@@ -16,13 +16,13 @@ import studio.bachelor.muninn.R;
  * Created by BACHELOR on 2016/03/01.
  */
 public class Line implements Renderable {
-    private float width;
+    private int width;
     public final Position head;
     public final Position tail;
     public final Paint paint = new Paint();
 
     {
-        width = Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width);
+        width = Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width) * 5;
         String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color);
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
@@ -40,7 +40,7 @@ public class Line implements Renderable {
         this.tail = tail;
     }
 
-    public void setWidth(float width) {
+    public void setWidth(int width) {
         this.width = width;
         paint.setStrokeWidth(this.width);
     }
