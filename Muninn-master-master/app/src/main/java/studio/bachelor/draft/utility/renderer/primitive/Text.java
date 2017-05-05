@@ -22,7 +22,7 @@ public class Text implements Renderable {
     public final MapString mapString;
 
     {
-        textSize = Muninn.getSizeSetting(R.string.key_marker_text_size, R.string.default_marker_text_size);
+        textSize = Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width) * 10 + 10;
         String color = Muninn.getColorSetting(R.string.key_marker_text_color, R.string.default_marker_text_color);
         paint.setColor(Color.parseColor(color));
         paint.setAntiAlias(true);
