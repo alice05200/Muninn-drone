@@ -48,12 +48,11 @@ public class Text implements Renderable {
         mapString = string;
     }
 
-    public Text(MapString string, float size) {
+    public Text(MapString string, float size, String color) {
         position = new Position();
         this.string = null;
         mapString = string;
         textSize =  size * 10 + 10;
-        String color = Muninn.getColorSetting(R.string.key_marker_text_color, R.string.default_marker_text_color);
         paint.setColor(Color.parseColor(color));
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
@@ -66,12 +65,11 @@ public class Text implements Renderable {
         mapString = string;
     }
 
-    public Text(MapString string, Position position, float size) {
+    public Text(MapString string, Position position, float size, String color) {
         this.position = position;
         this.string = null;
         mapString = string;
         textSize = size * 10 + 10;
-        String color = Muninn.getColorSetting(R.string.key_marker_text_color, R.string.default_marker_text_color);
         paint.setColor(Color.parseColor(color));
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);

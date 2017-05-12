@@ -2,26 +2,21 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
    >
     <EditTextPreference
-        android:key="server_address"
+        android:key="@string/key_FTP_upload_IP_address"
         android:title="伺服器位址"
-        android:defaultValue="134.208.2.201"
+        android:defaultValue="@string/default_FTP_upload_IP_address"
         android:summary="伺服器位址，例如：134.208.2.201、www.server.com"/>
 
     <EditTextPreference
-        android:key="username"
+        android:key="@string/key_FTP_upload_username"
         android:title="使用者帳號"
-        android:defaultValue="demo"
+        android:defaultValue="@string/default_FTP_upload_username"
         android:summary="請輸入使用者帳號"/>
 
     <EditTextPreference
-        android:key="password"
+        android:key="@string/key_FTP_upload_password"
         android:title="使用者密碼"
-        android:defaultValue="demo"
+        android:defaultValue="@string/default_FTP_upload_password"
         android:summary="請輸入使用者密碼"/>
 
-    <EditTextPreference
-        android:key="server_folder"
-        android:title="伺服器目錄"
-        android:defaultValue="/"
-        android:summary="伺服器目錄"/>
 </PreferenceScreen>

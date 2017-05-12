@@ -103,10 +103,10 @@ public class MarkerRendererBuilder extends RendererBuilder {
         return this;
     }
 
-    public MarkerRendererBuilder setText(MapString string, Position position, float size) {
+    public MarkerRendererBuilder setText(MapString string, Position position, float size, String color) {
         createProductIfNull();
         MarkerRenderer renderer = (MarkerRenderer)product;
-        Text text = new Text(string, position, size);
+        Text text = new Text(string, position, size, color);
         renderer.primitives.add(text);
         return this;
     }
@@ -118,10 +118,10 @@ public class MarkerRendererBuilder extends RendererBuilder {
         renderer.primitives.add(text);
         return this;
     }
-    public MarkerRendererBuilder setText(MapString string, List<Position> positions, float size) {
+    public MarkerRendererBuilder setText(MapString string, List<Position> positions, float size, String color) {
         createProductIfNull();
         MarkerRenderer renderer = (MarkerRenderer)product;
-        Text text = new CenterText(string, positions, size); //implements Renderable
+        Text text = new CenterText(string, positions, size, color); //implements Renderable
         renderer.primitives.add(text);
         return this;
     }

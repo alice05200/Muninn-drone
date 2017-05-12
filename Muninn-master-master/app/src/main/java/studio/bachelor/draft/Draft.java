@@ -38,7 +38,6 @@ public class Draft{
     public final ScaleLayer layer = new ScaleLayer(0, 0);
     public double scale = 1.0;
     private final List<Path> paths = new ArrayList<Path>();
-    private final List<Path> eraserPaths = new ArrayList<Path>();
     private Path currentPath = null;
     private double width = 1.0;
     private double height = 1.0;
@@ -97,6 +96,11 @@ public class Draft{
 
     public List<Path> getPaths() {
         return paths;
+    }
+
+    public void removePath(Path p){
+        if(paths.indexOf(p) != -1)
+            paths.remove(p);
     }
 
     public void setWidthAndHeight(float width, float height) {

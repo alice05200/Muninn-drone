@@ -1,6 +1,10 @@
 package studio.bachelor.muninn;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -13,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by kusakawa on 2017/3/19.
@@ -37,21 +43,24 @@ public class FTPUtils {
         return ftpUtilsInstance;
     }
 
+
+
     public boolean initFTPSetting(String FTPUrl, int FTPPort, String UserName,
                                   String UserPassword) {
-        this.FTPUrl = "bgbot.ddns.net";
+        this.FTPUrl = FTPUrl;
         this.FTPPort = 21;
-        this.UserName = "kusakawa";
-        this.UserPassword = "kusakawa";
+        this.UserName =UserName;
+        this.UserPassword = UserPassword;
+        Log.d("AAAAAAA", "IP" + this.FTPUrl + "Name" + this.UserName + "Pass" + this.UserPassword);
 
         int reply;
 
         try {
             // 1.要連結的FTP的Url,Port
-            ftpClient.connect(FTPUrl, FTPPort);
+            ftpClient.connect(this.FTPUrl, this.FTPPort);
 
             // 2.登入FTP服務器
-            ftpClient.login(UserName, UserPassword);
+            ftpClient.login(this.UserName, this.UserPassword);
 
             // 3.看返回的值是不是230，如果是，表示成功
             reply = ftpClient.getReplyCode();
@@ -125,6 +134,11 @@ public class FTPUtils {
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);//圖片
 
+            Date current_time = new Date();
+            SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMdd");
+            String filename = simple_date_format.format(current_time);
+            mkdir_ftp(filename);
+            cd(filename);
             // 文件上傳吧～
             FileInputStream fileInputStream = new FileInputStream(FilePath);
             ftpClient.storeFile(FileName, fileInputStream);

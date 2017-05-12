@@ -56,4 +56,12 @@ public class Muninn extends Application {
     public static SharedPreferences getSharedPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
+
+    public static String getServerSetting(int key_id, int default_id) {
+        String default_str = context.getResources().getString(default_id);
+        String key_str = context.getResources().getString(key_id);
+        String preference = sharedPreferences.getString(key_str, default_str);
+        return preference;
+    }
+
 }

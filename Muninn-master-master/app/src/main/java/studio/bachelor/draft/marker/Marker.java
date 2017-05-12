@@ -38,7 +38,8 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     protected static DraftDirector director = DraftDirector.instance;
     private boolean locked = false;
     private int ID;
-    private String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), size = "" + (int)Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width);
+    private String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), size = "" + (int)Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width),
+    text_color = Muninn.getColorSetting(R.string.key_marker_text_color, R.string.default_marker_text_color);
     /**
      * 目前的選取狀態({@link studio.bachelor.draft.utility.Selectable.State})，預設為未選取。
      */
@@ -159,6 +160,9 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
         Element nodeColor = document.createElement("color");
         nodeColor.appendChild(document.createTextNode(color));
         node.appendChild(nodeColor);
+        Element nodeTextColor = document.createElement("text_color");
+        nodeTextColor.appendChild(document.createTextNode(text_color));
+        node.appendChild(nodeTextColor);
         Element nodeNameLabel = document.createElement("nameLabel");
         nodeNameLabel.appendChild(document.createTextNode("-1"));
         node.appendChild(nodeNameLabel);
@@ -171,15 +175,19 @@ public abstract class Marker implements Lockable, Touchable, Selectable, Removab
     public void setID(int ID){
         this.ID = ID;
     }
-    public void setSizeColor(String size, String color){
+    public void setSizeColor(String size, String color, String textColor){
         this.size = size;
         this.color = color;
+        this.text_color = textColor;
     }
     public String getColor(){
         return color;
     }
     public String getSize(){
         return size;
+    }
+    public String getText_color(){
+        return text_color;
     }
 //    public void changeCRUDstate(CRUD state) {
 //        this.crud = state;

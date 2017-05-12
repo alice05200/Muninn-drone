@@ -22,6 +22,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.io.File;
+
 import studio.bachelor.draft.DraftDirector;
 import studio.bachelor.draft.toolbox.Toolbox;
 
@@ -38,7 +40,7 @@ public class MuninnActivity extends AppCompatActivity {
 
 
         Toast toast = Toast.makeText(getApplicationContext(), "  請選擇圖片", Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.LEFT | Gravity.TOP,-20,50);
+        toast.setGravity(Gravity.LEFT | Gravity.TOP, 100,50);
         LinearLayout toastView = (LinearLayout) toast.getView();
         toastView.setBackgroundColor(getResources().getColor(R.color.none));
         ImageView imageCodeProject = new ImageView(getApplicationContext());
@@ -65,9 +67,30 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.select_photo).setOnClickListener(new OnClickListener() {//選擇影像
             public void onClick(View view) {//選擇照片
                 Muninn.mVibrator.vibrate(100);
-                switchToGallery();
-                DraftDirector.instance.selectTool(currentTool);
-
+                if(DraftDirector.instance.getSaveState()) {
+                    switchToGallery();
+                    DraftDirector.instance.selectTool(currentTool);
+                }else {
+                    new AlertDialog.Builder(MuninnActivity.this)
+                            .setTitle("確定離開")
+                            .setMessage("尚未儲存更新，確定離開？")
+                            .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Muninn.mVibrator.vibrate(100);
+                                    DraftDirector.instance.setSaveState(true);
+                                    switchToGallery();
+                                    DraftDirector.instance.selectTool(currentTool);
+                                }
+                            })
+                            .setNeutralButton(R.string.not_to_delete_line, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Muninn.mVibrator.vibrate(100);
+                                }
+                            })
+                            .show();
+                }
             }
         });
         findViewById(R.id.select_photo).setOnTouchListener(new View.OnTouchListener() {
@@ -249,8 +272,24 @@ public class MuninnActivity extends AppCompatActivity {
                         switch (item.getItemId()){
                             case R.id.clear_eraser:
                                 Muninn.mVibrator.vibrate(100);
-                                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-                                Toast.makeText(getApplicationContext(), "已清除草搞", Toast.LENGTH_SHORT).show();
+                                new AlertDialog.Builder(MuninnActivity.this)
+                                        .setTitle("確定清除所有草搞？")
+                                        .setMessage(R.string.alert_delete_line)
+                                        .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                Muninn.mVibrator.vibrate(100);
+                                                DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
+                                                Toast.makeText(getApplicationContext(), "已清除草搞", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .setNeutralButton(R.string.not_to_delete_line, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                Muninn.mVibrator.vibrate(100);
+                                            }
+                                        })
+                                        .show();
                                 break;
                             case R.id.clear_line:
                                 Muninn.mVibrator.vibrate(100);
@@ -294,6 +333,48 @@ public class MuninnActivity extends AppCompatActivity {
                 picMode = 0;
                 changePic(preTool);
                 DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);
+            }
+        });
+        findViewById(R.id.select_zip_button).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Muninn.mVibrator.vibrate(100);
+                if(DraftDirector.instance.getSaveState()){
+                    switchToZIPBrowsing();
+                    DraftDirector.instance.selectTool(currentTool);
+                }else {
+                    new AlertDialog.Builder(MuninnActivity.this)
+                            .setTitle("確定離開")
+                            .setMessage("尚未儲存更新，確定離開？")
+                            .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Muninn.mVibrator.vibrate(100);
+                                    DraftDirector.instance.setSaveState(true);
+                                    switchToZIPBrowsing();
+                                    DraftDirector.instance.selectTool(currentTool);
+                                }
+                            })
+                            .setNeutralButton(R.string.not_to_delete_line, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Muninn.mVibrator.vibrate(100);
+                                }
+                            })
+                            .show();
+                }
+            }
+        });
+        findViewById(R.id.select_zip_button).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN){
+                    v.setBackgroundResource(R.drawable.ic_zip_2);
+                }
+                else if(event.getAction() == MotionEvent.ACTION_UP){
+                    v.setBackgroundResource(R.drawable.ic_zip_1);
+                }
+                return false;
             }
         });
         /*findViewById(R.id.line_restart_button).setOnClickListener(new OnClickListener() {//清除標線
@@ -350,7 +431,7 @@ public class MuninnActivity extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setType("application/zip");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, SELECT_ZIP);
+        startActivityForResult(Intent.createChooser(intent, "請選擇ZIP檔"), SELECT_ZIP);
     }
 
     private void switchToSetting() {
@@ -364,10 +445,19 @@ public class MuninnActivity extends AppCompatActivity {
             if (requestCode == SELECT_PICTURE) {
                 Uri uri = data.getData();
                 DraftDirector.instance.setBirdviewImageByUri(uri);
+                Toast toast = Toast.makeText(getApplicationContext(), "請選擇功能編輯", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.BOTTOM,-200,200);
+                LinearLayout toastView = (LinearLayout) toast.getView();
+                ImageView imageCodeProject = new ImageView(getApplicationContext());
+                imageCodeProject.setImageResource(R.drawable.ic_down);
+                toastView.addView(imageCodeProject, 0);
+                toast.show();
             }
             else if(requestCode == SELECT_ZIP) {
                 Uri uri = data.getData();
-                DraftDirector.instance.uploadToServer(uri);
+                Log.d("AAAAAAAA", uri.toString());
+                if(!DraftDirector.instance.unpackZip(uri))
+                    Toast.makeText(getApplicationContext(), "壓縮檔讀取失敗", Toast.LENGTH_SHORT).show();
             }
         }
     }

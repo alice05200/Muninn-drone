@@ -29,8 +29,8 @@ public class MarkerXMLHandler {
     private ArrayList<Marker> markers;
     private ArrayList<Position> positions, tempPositions;
     private ArrayList<Integer> nameLabels, markerIDs, numLabels, link1s, link2s, labelIDs, labelTypes;
-    private ArrayList<String> labelTexts;
-    private String  position_X, position_Y, nameLabel, labelText;
+    private ArrayList<String> labelTexts, markerSizes, markerColors, textColors;
+    private String  position_X, position_Y, nameLabel, labelText, color, size, textColor;
     private int id, labelID, markerNum = 0, linkNum = 0;
     private float px, py;
     private int mode = 0, numLabel = -1, link1 = -1, link2 = -1;
@@ -48,6 +48,9 @@ public class MarkerXMLHandler {
         labelTexts = new ArrayList<String>();
         markerIDs = new ArrayList<Integer>();
         tempPositions = new ArrayList<Position>();
+        markerSizes = new ArrayList<String>();
+        markerColors = new ArrayList<String>();
+        textColors = new ArrayList<String>();
     }
 
     public void cleanList(){
@@ -62,6 +65,9 @@ public class MarkerXMLHandler {
         labelTexts.clear();
         markerIDs.clear();
         tempPositions.clear();
+        markerSizes.clear();
+        markerColors.clear();
+        textColors.clear();
         markerNum = 0;
         mode = 0;
         numLabel = -1;
@@ -78,17 +84,16 @@ public class MarkerXMLHandler {
         return markers;
     }
 
-    public ArrayList<Marker> parse(String str){
+    public ArrayList<Marker> parse(){
         XmlPullParserFactory factory = null;
         XmlPullParser parser = null;
-        String file_name = str.substring(str.indexOf("/Muninn"), str.indexOf("birdview.jpg")) + "data.xml";
-        Log.d("我我我", file_name);
         try {
-            File file = new File(Environment.getExternalStorageDirectory() + file_name);
-            if(!file.exists()) {
-                Toast.makeText(Muninn.getContext(), "Error", Toast.LENGTH_SHORT).show();
+            File directory = new File(Environment.getExternalStorageDirectory(), "Muninn");
+            if(!directory.exists())
                 return null;
-            }
+            File file = new File(directory, "data.xml");
+            if(!file.exists())
+                return null;
             FileInputStream fileInputStream = new FileInputStream(file);
             factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
@@ -127,6 +132,12 @@ public class MarkerXMLHandler {
                             mode = 6;
                         }else if(tagName.equals("label")){
                             mode = 7;
+                        }else if(tagName.equals("size")){
+                            mode = 8;
+                        }else if(tagName.equals("color")){
+                            mode = 9;
+                        }else if(tagName.equals("text_color")){
+                            mode = 10;
                         }else
                             mode = -1;
                         break;
@@ -134,7 +145,6 @@ public class MarkerXMLHandler {
                         switch(mode){
                             case 0:
                                 position_X = parser.getText();
-                                Log.d("AAAAAA", parser.getText());
                                 px = Float.parseFloat(position_X);
                                 break;
                             case 1:
@@ -170,6 +180,18 @@ public class MarkerXMLHandler {
                                 labelText = parser.getText();
                                 Log.d("labelTexts復原", parser.getText());
                                 break;
+                            case 8:
+                                size = parser.getText();
+                                Log.d("Marker復原size", size);
+                                break;
+                            case 9:
+                                color = parser.getText();
+                                Log.d("Marker復原color", color);
+                                break;
+                            case 10:
+                                textColor = parser.getText();
+                                Log.d("Marker復原textcolor", textColor);
+                                break;
                         }
                         mode = -1;
                         break;
@@ -177,6 +199,12 @@ public class MarkerXMLHandler {
                         if(tagName.equals("positionY") && !markerDone){
                             tempPositions.add(new Position(px, py));
                             Log.d("Position復原", "x" + px + "y" + py);
+                        }else if(tagName.equals("size") && !markerDone){
+                            markerSizes.add(size);
+                        }else if(tagName.equals("color") && !markerDone){
+                            markerColors.add(color);
+                        }else if(tagName.equals("text_color")){
+                            textColors.add(textColor);
                         }else if(tagName.equals("markers")){
                             markerDone = true;
                         }else if(tagName.equals("label")){
@@ -195,10 +223,13 @@ public class MarkerXMLHandler {
         }
         Log.d("Marker數", "" + markerNum);
         Log.d("Line數", "" + linkNum);
+
         for(int i = 0; i < markerNum; i++){//先恢復LabelMarker
             if(nameLabels.get(i) != -1){
                 marker = new LabelMarker();
                 ((LabelMarker)marker).setLabel(labelTexts.get(nameLabels.get(i)));
+                marker.setSizeColor(markerSizes.get(i), markerColors.get(i), textColors.get(i));
+                Log.d("AAAAA", markerSizes.get(i) + "," + markerColors.get(i));
                 markers.add(marker);
                 positions.add(tempPositions.get(i));
             }
@@ -209,8 +240,12 @@ public class MarkerXMLHandler {
         if(anchorMarker != -1) {//如果有找到
             marker = AnchorMarker.getInstance();
             ((AnchorMarker) marker).setRealDistance(Double.parseDouble(labelTexts.get(labelTypes.indexOf(1))));
+            marker.setSizeColor(markerSizes.get(markerIDs.indexOf(link2s.get(anchorMarker))), markerColors.get(markerIDs.indexOf(link2s.get(anchorMarker))),
+                    textColors.get(markerIDs.indexOf(link2s.get(anchorMarker))));
             markers.add(marker);
             marker = new ControlMarker();
+            marker.setSizeColor(markerSizes.get(markerIDs.indexOf(link1s.get(anchorMarker))), markerColors.get(markerIDs.indexOf(link1s.get(anchorMarker))),
+                    markerColors.get(markerIDs.indexOf(link1s.get(anchorMarker))));
             markers.add(marker);
             if(link1s.get(anchorMarker) > link2s.get(anchorMarker)) {
                 positions.add(tempPositions.get(markerIDs.indexOf(link2s.get(anchorMarker))));
@@ -223,8 +258,12 @@ public class MarkerXMLHandler {
         for(int i = 0; i < linkNum; i++){//恢復MeasureMarker
             if(i != anchorMarker){
                 marker = new MeasureMarker();
+                marker.setSizeColor(markerSizes.get(markerIDs.indexOf(link2s.get(i))), markerColors.get(markerIDs.indexOf(link2s.get(i))),
+                        textColors.get(markerIDs.indexOf(link2s.get(i))));
                 markers.add(marker);
                 marker = new ControlMarker();
+                marker.setSizeColor(markerSizes.get(markerIDs.indexOf(link1s.get(i))), markerColors.get(markerIDs.indexOf(link1s.get(i))),
+                        markerColors.get(markerIDs.indexOf(link1s.get(i))));
                 markers.add(marker);
                 if(link1s.get(i) > link2s.get(i)){
                     positions.add(tempPositions.get(markerIDs.indexOf(link2s.get(i))));

@@ -49,6 +49,15 @@
     <string name="key_marker_selected_color">marker_selected_color</string>
     <string name="default_marker_selected_color">#aa0000</string>
 
+    <string name="key_FTP_upload_IP_address">FTP_upload_IP_address</string>
+    <string name="default_FTP_upload_IP_address">140.118.175.110</string>
+
+    <string name="key_FTP_upload_username">FTP_upload_username</string>
+    <string name="default_FTP_upload_username">lailai</string>
+
+    <string name="key_FTP_upload_password">FTP_upload_password</string>
+    <string name="default_FTP_upload_password">123</string>
+
     <string-array name="color_name">
         <item>黑</item>
         <item>白</item>
