@@ -39,11 +39,11 @@ public class Muninn extends Application {
         return context;
     }
 
-    public static int getSizeSetting(int key_id, int default_id) {
+    public static float getSizeSetting(int key_id, int default_id) {
         String default_str = context.getResources().getString(default_id);
         String key_str = context.getResources().getString(key_id);
         String preference = sharedPreferences.getString(key_str, default_str);
-        return Math.abs(Integer.parseInt(preference));
+        return Math.abs(Float.parseFloat(preference));
     }
 
     public static String getColorSetting(int key_id, int default_id) {
@@ -56,4 +56,12 @@ public class Muninn extends Application {
     public static SharedPreferences getSharedPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
+
+    public static String getServerSetting(int key_id, int default_id) {
+        String default_str = context.getResources().getString(default_id);
+        String key_str = context.getResources().getString(key_id);
+        String preference = sharedPreferences.getString(key_str, default_str);
+        return preference;
+    }
+
 }

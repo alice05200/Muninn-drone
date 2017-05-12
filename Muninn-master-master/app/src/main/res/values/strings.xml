@@ -2,7 +2,7 @@
     <string name="app_name">Muninn</string>
     <string name="select_photo_string">選擇影像</string>
     <string name="select_zip_string">選擇存檔</string>
-    <string name="setting_label">Setting</string>
+    <string name="setting_label">設定</string>
     <string name="setting_string">參數設定</string>
     <string name="save_string">儲存草圖</string>
     <string name="sign_string">簽名</string>
@@ -30,7 +30,7 @@
     <string name="key_marker_selection_radius">marker_selection_radius</string>
 
     <string name="default_marker_point_radius">10.0</string>
-    <string name="default_marker_line_width">1</string>
+    <string name="default_marker_line_width">1.0</string>
     <string name="default_marker_text_size">20.0</string>
     <string name="default_marker_selection_radius">10.0</string>
 
@@ -48,6 +48,15 @@
 
     <string name="key_marker_selected_color">marker_selected_color</string>
     <string name="default_marker_selected_color">#aa0000</string>
+
+    <string name="key_FTP_upload_IP_address">FTP_upload_IP_address</string>
+    <string name="default_FTP_upload_IP_address">140.118.175.110</string>
+
+    <string name="key_FTP_upload_username">FTP_upload_username</string>
+    <string name="default_FTP_upload_username">lailai</string>
+
+    <string name="key_FTP_upload_password">FTP_upload_password</string>
+    <string name="default_FTP_upload_password">123</string>
 
     <string-array name="color_name">
         <item>黑</item>

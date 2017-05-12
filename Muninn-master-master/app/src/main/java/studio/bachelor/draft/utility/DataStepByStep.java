@@ -1,5 +1,7 @@
 package studio.bachelor.draft.utility;
 
+import android.graphics.Path;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -11,6 +13,7 @@ import studio.bachelor.draft.utility.Selectable.CRUD;
  */
 public class DataStepByStep {
     private Marker marker = null;
+    private Path path = null;
     private CRUD state = CRUD.UNKNOWN;
 //    public LinkedList<Position> historyTapPositionsUndo = new LinkedList<Position>();
 //    public int historyIndex = 0;
@@ -19,8 +22,17 @@ public class DataStepByStep {
         this.state = state;
     }
 
+    public DataStepByStep(Path path, CRUD state) {
+        this.path = path;
+        this.state = state;
+    }
+
     public Marker getMarker() {
         return marker;
+    }
+
+    public Path getPath(){
+        return path;
     }
 
     public CRUD getCRUDstate() {

@@ -29,13 +29,13 @@ public class ScaleLayer extends Layer {
     public void scale(float factor) {
         float tmp=currentScale;
         currentScale = currentScale + factor > 0.0f ? (currentScale + factor) : currentScale;//判斷式?true回傳:false回傳
-        if (currentScale>2)//盈如 設定了圖片放大縮小的限制
+        if (currentScale>3)//盈如 設定了圖片放大縮小的限制
         {
             if(!biggest) {
                 Toast.makeText(Muninn.getContext(), "已縮放到最大", Toast.LENGTH_SHORT).show();
                 biggest = true;
             }
-            currentScale=2;
+            currentScale=3;
         }else if(currentScale<0.2){
             if(!smallest) {
                 Toast.makeText(Muninn.getContext(), "已縮放到最小", Toast.LENGTH_SHORT).show();
