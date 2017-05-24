@@ -12,6 +12,8 @@ import studio.bachelor.draft.DraftDirector;
 import studio.bachelor.draft.marker.Marker;
 import studio.bachelor.draft.toolbox.Toolbox;
 import studio.bachelor.draft.utility.Position;
+import studio.bachelor.muninn.Muninn;
+import studio.bachelor.muninn.MuninnActivity;
 
 /**
  * Created by BACHELOR on 2016/03/01.
@@ -62,6 +64,11 @@ public class MasterHand implements
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        if(MuninnActivity.message != null) {
+            if (MuninnActivity.message.getVisibility() == View.VISIBLE) {
+                MuninnActivity.message.setVisibility(View.INVISIBLE);
+            }
+        }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 postMotion(MotionHandler.Motion.DOWN, event, null);
@@ -143,10 +150,10 @@ public class MasterHand implements
         float scale = detector.getScaleFactor();
         Position position = getFocusPosition(detector);
         Log.d("EVENT", "onScale = " + scale);
-        if(scale > 1.2) {
+        if(scale > 1.001) {
             postMotion(MotionHandler.Motion.PINCH_IN, position, null); //放大，雙指拉開
         }
-        else if(scale < 0.8) {
+        else if(scale < 0.999) {
             postMotion(MotionHandler.Motion.PINCH_OUT, position, null); //縮小，雙指拉近
         }
         return false;

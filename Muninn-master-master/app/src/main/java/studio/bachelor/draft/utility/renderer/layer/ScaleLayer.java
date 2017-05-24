@@ -1,10 +1,14 @@
 package studio.bachelor.draft.utility.renderer.layer;
 
 import android.util.Log;
+import android.view.Gravity;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import studio.bachelor.draft.utility.Position;
 import studio.bachelor.muninn.Muninn;
+import studio.bachelor.muninn.MuninnActivity;
 
 /**
  * Created by BACHELOR on 2016/03/03.
@@ -32,13 +36,23 @@ public class ScaleLayer extends Layer {
         if (currentScale>3)//盈如 設定了圖片放大縮小的限制
         {
             if(!biggest) {
-                Toast.makeText(Muninn.getContext(), "已縮放到最大", Toast.LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(Muninn.getContext(), "已縮放到最大", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP, 0,0);
+                LinearLayout linearLayout = (LinearLayout) toast.getView();
+                TextView messageTextView = (TextView) linearLayout.getChildAt(0);
+                messageTextView.setTextSize(MuninnActivity.width / 40);
+                toast.show();
                 biggest = true;
             }
             currentScale=3;
         }else if(currentScale<0.2){
             if(!smallest) {
-                Toast.makeText(Muninn.getContext(), "已縮放到最小", Toast.LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(Muninn.getContext(), "已縮放到最小", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP, 0,0);
+                LinearLayout linearLayout = (LinearLayout) toast.getView();
+                TextView messageTextView = (TextView) linearLayout.getChildAt(0);
+                messageTextView.setTextSize(MuninnActivity.width / 40);
+                toast.show();
                 smallest = true;
             }
             currentScale=0.2f;
