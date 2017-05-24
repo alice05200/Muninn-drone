@@ -4,11 +4,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.StrictMode;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.Gravity;
@@ -18,8 +21,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -31,28 +37,42 @@ public class MuninnActivity extends AppCompatActivity {
     private static final int SELECT_PICTURE = 21101;
     private static final int SELECT_ZIP = 21102;
     private Toolbox.Tool currentTool = Toolbox.Tool.HAND_MOVE, preTool = Toolbox.Tool.HAND_MOVE;
+    private RelativeLayout layout = null;
     private int picMode = 0;
+    public static int width = 0;
+    private ContextThemeWrapper contextThemeWrapper;
+    public static TextView message = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_muninn);
+        width = Muninn.getContext().getResources().getDisplayMetrics().widthPixels;
+        contextThemeWrapper = new ContextThemeWrapper(MuninnActivity.this, R.style.dialog);
 
-
-        Toast toast = Toast.makeText(getApplicationContext(), "  請選擇圖片", Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.LEFT | Gravity.TOP, 100,50);
+        Toast toast = Toast.makeText(getApplicationContext(), "↖請選擇圖片", Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER,0,0);
         LinearLayout toastView = (LinearLayout) toast.getView();
-        toastView.setBackgroundColor(getResources().getColor(R.color.none));
-        ImageView imageCodeProject = new ImageView(getApplicationContext());
-        imageCodeProject.setImageResource(R.drawable.ic_up);
-        toastView.addView(imageCodeProject, 0);
+        TextView messageTextView = (TextView) toastView .getChildAt(0);
+        messageTextView.setTextSize(width/40);
         toast.show();
-
 
         final Context context = this;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DraftDirector.instance.selectTool(Toolbox.Tool.HAND_MOVE);//預設為拖曳模式
         findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
+        layout = (RelativeLayout)findViewById(R.id.rootLayout);
+        layout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(message != null) {
+                    if (message.getVisibility() == View.VISIBLE) {
+                        message.setVisibility(View.INVISIBLE);
+                    }
+                }
+                return false;
+            }
+        });
         findViewById(R.id.move_huginn).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,8 +80,9 @@ public class MuninnActivity extends AppCompatActivity {
                 if(appInstalledOrNot("studio.bachelor.huginn")) {
                     Intent intent = getPackageManager().getLaunchIntentForPackage("studio.bachelor.huginn");
                     startActivity(intent);
-                }else
-                    Toast.makeText(getApplicationContext(), "尚未安裝Huginn", Toast.LENGTH_SHORT).show();
+                }else {
+                    showToast("尚未安裝Huginn");
+                }
             }
         });
         findViewById(R.id.select_photo).setOnClickListener(new OnClickListener() {//選擇影像
@@ -71,8 +92,8 @@ public class MuninnActivity extends AppCompatActivity {
                     switchToGallery();
                     DraftDirector.instance.selectTool(currentTool);
                 }else {
-                    new AlertDialog.Builder(MuninnActivity.this)
-                            .setTitle("確定離開")
+                    AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
+                    builder.setTitle("確定離開")
                             .setMessage("尚未儲存更新，確定離開？")
                             .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                                 @Override
@@ -88,8 +109,11 @@ public class MuninnActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Muninn.mVibrator.vibrate(100);
                                 }
-                            })
-                            .show();
+                            });
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                    TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+                    textView.setTextSize(width / 40);
                 }
             }
         });
@@ -127,7 +151,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//儲存至本地
                 Muninn.mVibrator.vibrate(100);
-                Toast.makeText(getApplicationContext(), "開始儲存，靜候完成訊息。", Toast.LENGTH_SHORT).show();
+                showToast("開始儲存，靜候完成訊息。");
                 DraftDirector.instance.exportToZip();
             }
         });
@@ -139,26 +163,6 @@ public class MuninnActivity extends AppCompatActivity {
                 }
                 else if(event.getAction() == MotionEvent.ACTION_UP){
                     v.setBackgroundResource(R.drawable.ic_save_1);
-                }
-                return false;
-            }
-        });
-        findViewById(R.id.sign).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {//簽名
-                Muninn.mVibrator.vibrate(100);
-
-                DraftDirector.instance.showSignPad(context);
-            }
-        });
-        findViewById(R.id.sign).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN){
-                    v.setBackgroundResource(R.drawable.ic_sign_2);
-                }
-                else if(event.getAction() == MotionEvent.ACTION_UP){
-                    v.setBackgroundResource(R.drawable.ic_sign_1);
                 }
                 return false;
             }
@@ -176,7 +180,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//標籤
                 Muninn.mVibrator.vibrate(100);
-                Toast.makeText(getApplicationContext(), "點兩下新增標籤", Toast.LENGTH_SHORT).show();
+                showToast("點兩下新增標籤");
                 changeMode(currentTool, Toolbox.Tool.MARKER_TYPE_LABEL);
                 findViewById(R.id.label_button).setBackgroundResource(R.drawable.ic_text_2);
                 picMode = 0;
@@ -188,7 +192,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//自動標線
                 Muninn.mVibrator.vibrate(100);
-                Toast.makeText(getApplicationContext(), "點兩下新增標線", Toast.LENGTH_SHORT).show();
+                showToast("點兩下新增標線");
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_LINK);
                 findViewById(R.id.auto_button).setBackgroundResource(R.drawable.ic_distance_auto_2);
                 picMode = 0;
@@ -200,7 +204,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//標線
                 Muninn.mVibrator.vibrate(100);
-                Toast.makeText(getApplicationContext(), "點兩下新增比例尺", Toast.LENGTH_SHORT).show();
+                showToast("點兩下新增比例尺");
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_ANCHOR);
                 findViewById(R.id.line_button).setBackgroundResource(R.drawable.ic_distance_2);
                 picMode = 0;
@@ -213,7 +217,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//草稿線
                 Muninn.mVibrator.vibrate(100);
                 changeMode(currentTool, Toolbox.Tool.PATH_MODE);
-                Toast.makeText(getApplicationContext(), "鉛筆功能", Toast.LENGTH_SHORT).show();
+                showToast("鉛筆功能");
                 findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_2);
                 picMode = 0;
                 changePic(preTool);
@@ -264,7 +268,9 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//刪除特定標線標籤
                 Muninn.mVibrator.vibrate(100);
-                final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.delete_button));
+                //final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.delete_button));
+                Context wrapper = new ContextThemeWrapper(context, R.style.myPopupMenuStyle);
+                PopupMenu popupmenu = new PopupMenu(wrapper, v);
                 popupmenu.getMenuInflater().inflate(R.menu.menu, popupmenu.getMenu());
                 popupmenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() { // 設定popupmenu項目點擊傾聽者
                     @Override
@@ -272,15 +278,15 @@ public class MuninnActivity extends AppCompatActivity {
                         switch (item.getItemId()){
                             case R.id.clear_eraser:
                                 Muninn.mVibrator.vibrate(100);
-                                new AlertDialog.Builder(MuninnActivity.this)
-                                        .setTitle("確定清除所有草搞？")
-                                        .setMessage(R.string.alert_delete_line)
+                                AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
+                                builder.setTitle(R.string.sure_to_delete_line)
+                                        .setMessage(R.string.alert_clean_line)
                                         .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 Muninn.mVibrator.vibrate(100);
                                                 DraftDirector.instance.selectTool(Toolbox.Tool.CLEAR_PATH);
-                                                Toast.makeText(getApplicationContext(), "已清除草搞", Toast.LENGTH_SHORT).show();
+                                                showToast("已清除草稿");
                                             }
                                         })
                                         .setNeutralButton(R.string.not_to_delete_line, new DialogInterface.OnClickListener() {
@@ -288,8 +294,11 @@ public class MuninnActivity extends AppCompatActivity {
                                             public void onClick(DialogInterface dialog, int which) {
                                                 Muninn.mVibrator.vibrate(100);
                                             }
-                                        })
-                                        .show();
+                                        });
+                                AlertDialog alertDialog = builder.create();
+                                alertDialog.show();
+                                TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+                                textView.setTextSize(width / 40);
                                 break;
                             case R.id.clear_line:
                                 Muninn.mVibrator.vibrate(100);
@@ -302,7 +311,7 @@ public class MuninnActivity extends AppCompatActivity {
                                 findViewById(R.id.delete_button).setBackgroundResource(R.drawable.ic_delete_2);
                                 picMode = 0;
                                 changePic(preTool);
-                                Toast.makeText(getApplicationContext(), "長按物件點移除", Toast.LENGTH_SHORT).show();
+                                showToast("長按物件的端點移除");
                                 break;
                         }
                         return true;
@@ -328,7 +337,7 @@ public class MuninnActivity extends AppCompatActivity {
             public void onClick(View v) {//拖曳模式
                 Muninn.mVibrator.vibrate(100);
                 changeMode(currentTool, Toolbox.Tool.HAND_MOVE);
-                Toast.makeText(getApplicationContext(), "拖曳模式", Toast.LENGTH_SHORT).show();
+                showToast("拖曳模式");
                 findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
                 picMode = 0;
                 changePic(preTool);
@@ -343,8 +352,8 @@ public class MuninnActivity extends AppCompatActivity {
                     switchToZIPBrowsing();
                     DraftDirector.instance.selectTool(currentTool);
                 }else {
-                    new AlertDialog.Builder(MuninnActivity.this)
-                            .setTitle("確定離開")
+                    AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
+                    builder.setTitle("確定離開")
                             .setMessage("尚未儲存更新，確定離開？")
                             .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                                 @Override
@@ -360,8 +369,11 @@ public class MuninnActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Muninn.mVibrator.vibrate(100);
                                 }
-                            })
-                            .show();
+                            });
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                    TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+                    textView.setTextSize(width / 40);
                 }
             }
         });
@@ -377,32 +389,42 @@ public class MuninnActivity extends AppCompatActivity {
                 return false;
             }
         });
-        /*findViewById(R.id.line_restart_button).setOnClickListener(new OnClickListener() {//清除標線
-            @Override
-            public void onClick(View v) {
-                ClearLineDialog();//警告
-            }
-        });
-        findViewById(R.id.line_restart_button).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN){
-                    v.setBackgroundResource(R.drawable.ic_refresh_2);
-                }
-                else if(event.getAction() == MotionEvent.ACTION_UP){
-                    v.setBackgroundResource(R.drawable.ic_refresh_1);
-                }
-                return false;
-            }
-        });*/
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
     }
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
+            ConfirmExit(); //呼叫ConfirmExit()函數
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+
+    public void ConfirmExit(){
+        AlertDialog.Builder ad = new AlertDialog.Builder(contextThemeWrapper);
+        ad.setTitle("離開");
+        ad.setMessage("確定要離開?");
+        ad.setPositiveButton("是", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
+            public void onClick(DialogInterface dialog, int i) {
+                MuninnActivity.this.finish();//關閉activity
+            }
+        });
+        ad.setNegativeButton("否",new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+            public void onClick(DialogInterface dialog, int i) {
+            }
+        });
+        AlertDialog alertDialog = ad.create();
+        alertDialog.show();
+        TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+        textView.setTextSize(width / 40);
+    }
     /*清除標線警告dialog*/
     private void ClearLineDialog(){
-        new AlertDialog.Builder(MuninnActivity.this)
-                .setTitle(R.string.sure_to_delete_line)
+        AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
+        builder.setTitle(R.string.sure_to_delete_line)
                 .setMessage(R.string.alert_delete_line)
                 .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                     @Override
@@ -416,8 +438,11 @@ public class MuninnActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         Muninn.mVibrator.vibrate(100);
                     }
-                })
-                .show();
+                });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+        TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+        textView.setTextSize(width / 40);
     }
 
     private void switchToGallery() {
@@ -440,24 +465,31 @@ public class MuninnActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        DraftDirector.instance.cleanBirdviewLine();
+        super.onDestroy();
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             if (requestCode == SELECT_PICTURE) {
                 Uri uri = data.getData();
                 DraftDirector.instance.setBirdviewImageByUri(uri);
-                Toast toast = Toast.makeText(getApplicationContext(), "請選擇功能編輯", Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.BOTTOM,-200,200);
+                message = (TextView)findViewById(R.id.function_message);
+                message.setTextSize(width / 40);
+                message.setVisibility(View.VISIBLE);
+                /*Toast toast = Toast.makeText(getApplicationContext(), "請選擇功能編輯↓", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER,0,0);
                 LinearLayout toastView = (LinearLayout) toast.getView();
-                ImageView imageCodeProject = new ImageView(getApplicationContext());
-                imageCodeProject.setImageResource(R.drawable.ic_down);
-                toastView.addView(imageCodeProject, 0);
-                toast.show();
+                TextView messageTextView = (TextView) toastView .getChildAt(0);
+                messageTextView.setTextSize(width/40);
+                toast.show();*/
             }
             else if(requestCode == SELECT_ZIP) {
                 Uri uri = data.getData();
-                Log.d("AAAAAAAA", uri.toString());
                 if(!DraftDirector.instance.unpackZip(uri))
-                    Toast.makeText(getApplicationContext(), "壓縮檔讀取失敗", Toast.LENGTH_SHORT).show();
+                    showToast("壓縮檔讀取失敗");
             }
         }
     }
@@ -487,9 +519,6 @@ public class MuninnActivity extends AppCompatActivity {
                     case HAND_MOVE:
                         findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_1);
                         break;
-                    case SIGNATURE:
-                        findViewById(R.id.sign).setBackgroundResource(R.drawable.ic_sign_1);
-                        break;
                 }
             }else if(picMode == 1){
                 switch (tool) {
@@ -511,9 +540,6 @@ public class MuninnActivity extends AppCompatActivity {
                     case HAND_MOVE:
                         findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
                         break;
-                    case SIGNATURE:
-                        findViewById(R.id.sign).setBackgroundResource(R.drawable.ic_sign_2);
-                        break;
                 }
             }
         }
@@ -527,5 +553,13 @@ public class MuninnActivity extends AppCompatActivity {
         } catch (PackageManager.NameNotFoundException e) {
         }
         return false;
+    }
+    private void showToast(String string){
+        Toast toast = Toast.makeText(getApplicationContext(), string, Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.TOP, 0,0);
+        LinearLayout linearLayout = (LinearLayout) toast.getView();
+        TextView messageTextView = (TextView) linearLayout.getChildAt(0);
+        messageTextView.setTextSize(width/40);
+        toast.show();
     }
 }

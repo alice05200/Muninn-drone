@@ -108,7 +108,7 @@ public class MotionHandler {
 
                 break;
             case PINCH_IN: //放大，兩指拉開
-                director.zoomDraft(0.06f);
+                director.zoomDraft(0.03f);
                 director.moveLayerStop();//避免放大縮小後圖亂跳
                 break;
             case PINCH_OUT: //縮小，兩指拉近

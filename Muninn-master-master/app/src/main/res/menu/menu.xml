@@ -3,11 +3,11 @@
     android:theme="@style/Transparent">
     <item
         android:id="@+id/delete_line"
-        android:title="移除物件"
+        android:title="移除標線或標籤"
          />
     <item
         android:id="@+id/clear_line"
-        android:title="清除所有標線"/>
+        android:title="清除所有標線與標籤"/>
     <item
         android:id="@+id/clear_eraser"
         android:title="清除草稿線"/>

@@ -18,6 +18,7 @@ import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ContextThemeWrapper;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -25,6 +26,7 @@ import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.commons.net.ftp.FTP;
@@ -126,10 +128,10 @@ public class DraftDirector {
     private Toolbox.Tool currentMode = Toolbox.Tool.HAND_MOVE, preMode = Toolbox.Tool.HAND_MOVE;
     private MarkerXMLHandler markerXMLHandler = new MarkerXMLHandler();
 
-    private boolean readytoSave = true;
+    private boolean readytoSave = true, undoredo = false;
     private String filename = null, droneHeight = null;
     private double droneFOV = 78.8;
-    private final String MUNINN_FILE = "Muninn";
+    private final String MUNINN_FILE = "Muninn", HUGINN_FILE = "Pictures/DroneAlbum/";
     boolean firstTime = true; //Create後，firstTime = false; Delete後，firstTime = true
     boolean edit_mode = false;
     int i = 0;
@@ -152,13 +154,7 @@ public class DraftDirector {
     }
 
     public void setBirdviewImageByUri(Uri uri) {//設定選取的圖片
-        signFiles.clear();
-        clearAllLine();
-        draft.clearPaths();
-        draft.layer.setScale(1);
-        edit_mode = false;
-        Position screenCenter = new Position(0,0);
-        this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
+        cleanBirdviewLine();
         try {
             birdview = MediaStore.Images.Media.getBitmap(Muninn.getContext().getContentResolver(), uri);
             birdViewUri = uri;
@@ -177,8 +173,10 @@ public class DraftDirector {
         rendererManager.setBitmap(birdview);
         if(uri.getLastPathSegment().lastIndexOf("-") != -1 && uri.getLastPathSegment().lastIndexOf(".") != -1){
             droneHeight = uri.getLastPathSegment().substring(uri.getLastPathSegment().lastIndexOf("-") + 1, uri.getLastPathSegment().lastIndexOf("."));
-            if(droneHeight.matches("[0-9]+"))
-                addAnchorMarker(new Position(-birdview.getWidth() / 2 + draft.layer.getCenter().x, -birdview.getHeight() / 2  + draft.layer.getCenter().y), firstTime);
+            if(droneHeight.matches("[0-9]+")) {
+                addAnchorMarker(new Position(-birdview.getWidth() / 2 + draft.layer.getCenter().x, birdview.getHeight() / 2 + draft.layer.getCenter().y), firstTime);
+                firstTime = false;
+            }
             else
                 droneHeight = null;
         }
@@ -188,6 +186,25 @@ public class DraftDirector {
         Date current_time = new Date();
         SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHHmmss");
         filename = "Draft" + simple_date_format.format(current_time);//資料夾名稱預設Draft+時間
+    }
+
+    public void cleanBirdviewLine(){
+        signFiles.clear();
+        clearAllLine();
+        draft.clearPaths();
+        draft.layer.setScale(1);
+        edit_mode = false;
+        Position screenCenter = new Position(0,0);
+        this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
+        if(birdview != null) {
+            birdview = null;
+            rendererManager.setBitmap(birdview);
+            draftRenderer.setBirdview(birdview);
+            draft.setWidth(1);
+            draft.setHeight(1);
+            readytoSave = true;
+        }
+
     }
 
     public boolean getSaveState(){
@@ -221,7 +238,7 @@ public class DraftDirector {
                 i++;
             }
         }else
-            showToast("Error", true);
+            showToast("Error");
         edit_mode = false;
     }
     public void setWidthAndHeight(float width, float height) {
@@ -316,6 +333,10 @@ public class DraftDirector {
     public void addMarker(Position position) {
         Muninn.sound_Ding.seekTo(0);
         Muninn.sound_Ding.start();
+        if(undoredo){
+            StepByStepRedo.clear();
+            undoredo = false;
+        }
         if(tool != Toolbox.Tool.PATH_MODE)
             Muninn.mVibrator.vibrate(100);
       if(enablePosition(position))
@@ -337,12 +358,12 @@ public class DraftDirector {
         }
       }
     }
-    public   void addAnchorMarkerDialoag(final Position position ){
-
-        AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
+    public void addAnchorMarkerDialoag(final Position position ){
+        ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, R.style.dialog);
+        AlertDialog.Builder dialog_builder = new AlertDialog.Builder(contextThemeWrapper);
         dialog_builder
-                .setTitle("確定重設標線值?")
-                .setMessage("警告 !  \n重新設定值，將會更改所有標線比例。")
+                .setTitle(R.string.new_mark)
+                .setMessage(R.string.alert_new_mark)
                 .setPositiveButton("確定", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         Muninn.mVibrator.vibrate(100);
@@ -354,9 +375,11 @@ public class DraftDirector {
                     public void onClick(DialogInterface dialog, int which) {
                         Muninn.mVibrator.vibrate(100);
                     }
-                })
-                .show();
-
+                });
+        AlertDialog alertDialog = dialog_builder.create();
+        alertDialog.show();
+        TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+        textView.setTextSize(MuninnActivity.width / 40);
     }
 
     private void addLabelMarker(Position position) {
@@ -368,12 +391,13 @@ public class DraftDirector {
         Log.d("LabelMarker position", "x:" + position.x + ", y:" + position.y);
         if(!edit_mode) {
             final EditText edit_text = new EditText(context);
-            AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
+            ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, R.style.dialog);
+            AlertDialog.Builder dialog_builder = new AlertDialog.Builder(contextThemeWrapper);
             dialog_builder.setCancelable(false);
             dialog_builder
                     .setTitle("標籤資訊")
                     .setView(edit_text)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("確定", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Muninn.mVibrator.vibrate(100);
                             String label_str = edit_text.getText().toString();
@@ -383,12 +407,16 @@ public class DraftDirector {
                             ((LabelMarker) marker).setLabel(label_str);
                         }
                     })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Muninn.mVibrator.vibrate(100);
                             ((LabelMarker) marker).remove();
                         }
-                    }).show();
+                    });
+            AlertDialog alertDialog = dialog_builder.create();
+            alertDialog.show();
+            TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+            textView.setTextSize(MuninnActivity.width / 40);
                 //marker.setSizeColor("" +  Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color));
         }else {
             ((LabelMarker) marker).setLabel(((LabelMarker) markerXMLHandler.getMarkers().get(i)).getLabel());
@@ -454,7 +482,9 @@ public class DraftDirector {
         //  取得AnchorMarker與ControlMaker
         final Marker marker = AnchorMarker.getInstance();
                Marker linked;
-        if(edit_mode) {
+        if(droneHeight != null){
+            marker.setSizeColor("7", "#ff0000", "#ffffff");
+        }else if(edit_mode) {
             marker.setSizeColor(markerXMLHandler.getMarkers().get(i).getSize(), markerXMLHandler.getMarkers().get(i).getColor(), markerXMLHandler.getMarkers().get(i).getText_color());
             markerXMLHandler.getMarkers().get(i + 1).position.set(new Position(markerXMLHandler.getPositions().get(i + 1).x * birdview.getWidth() - birdview.getWidth() / 2 + draft.layer.getCenter().x,
                     markerXMLHandler.getPositions().get(i + 1).y * birdview.getHeight()  - birdview.getHeight() / 2 + draft.layer.getCenter().y));
@@ -470,50 +500,57 @@ public class DraftDirector {
         if(edit_mode)
             linked.setSizeColor(markerXMLHandler.getMarkers().get(i).getSize(), markerXMLHandler.getMarkers().get(i).getColor(), markerXMLHandler.getMarkers().get(i).getText_color());
         else
-            linked.setSizeColor("" + (int)Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width),
-                    Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color),
-                    Muninn.getColorSetting(R.string.key_marker_text_color, R.string.default_marker_text_color));
+            linked.setSizeColor(marker.getSize(),
+                    marker.getColor(),
+                    marker.getText_color());
         if (renderableMap.containsKey(marker) && renderableMap.containsKey(linked)) {
             rendererManager.removeRenderer(renderableMap.get(marker));
             rendererManager.removeRenderer(renderableMap.get(linked));
         }
 
         if(droneHeight != null){
-            double realD = Double.parseDouble(droneHeight) * Math.tan(droneFOV / 2 / 180 * Math.PI);
+            double realD = Double.parseDouble(droneHeight) * Math.tan(droneFOV / 2 / 180 * Math.PI) * 2;
+            realD = realD * 16 / Math.pow(337.0, 0.5);
+            realD = (double)(Math.round(realD * 1000000)) / 1000000;
             ((AnchorMarker) marker).setRealDistance(realD);
             AnchorMarker.historyDistancesUndo.addLast(realD);
-            showToast("已新增比例尺", false);
+            showToast("已新增比例尺");
+            ((AnchorMarker)marker).setPicDisPos(realD, position, new Position(birdview.getWidth() / 2 + draft.layer.getCenter().x, birdview.getHeight() / 2 + draft.layer.getCenter().y));
             //droneHeight = null;
         }else if(!edit_mode) {
             final EditText edit_text = new EditText(context);
             edit_text.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-            final AlertDialog.Builder dialog_builder = new AlertDialog.Builder(context);
+            ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, R.style.dialog);
+            final AlertDialog.Builder dialog_builder = new AlertDialog.Builder(contextThemeWrapper);
             dialog_builder.setCancelable(false);
             dialog_builder
                     .setTitle("真實距離")
                     .setView(edit_text)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("確定", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Muninn.mVibrator.vibrate(100);
                             String distance_str = edit_text.getText().toString();
                             Log.d(TAG, "distance string=======================================> " + distance_str);
                             if (edit_text.getText().toString().isEmpty() || Double.parseDouble(edit_text.getText().toString()) <= 0) {
                                 distance_str = "10";
-                                showToast("輸入不能為空或為零", false);
+                                showToast("請輸入有效數字");
                             }
                             ((AnchorMarker) marker).setRealDistance(Double.parseDouble(distance_str));
                             AnchorMarker.historyDistancesUndo.addLast(Double.parseDouble(distance_str)); //新增第一個distance至history
                         }
-                    })
-                    .show();
+                    });
+            AlertDialog alertDialog = dialog_builder.create();
+            alertDialog.show();
+            TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+            textView.setTextSize(MuninnActivity.width / 40);
         }else {
             ((AnchorMarker) marker).setRealDistance(((AnchorMarker) markerXMLHandler.getMarkers().get(i)).getRealDistance());
             AnchorMarker.historyDistancesUndo.addLast(((AnchorMarker) markerXMLHandler.getMarkers().get(i)).getRealDistance());
         }
         marker.position.set(position);
         if(droneHeight != null) {
-            linked.position.set(new Position(birdview.getWidth() / 2 + draft.layer.getCenter().x, -birdview.getHeight() / 2 + draft.layer.getCenter().y));
+            linked.position.set(new Position(birdview.getWidth() / 2 + draft.layer.getCenter().x, birdview.getHeight() / 2 + draft.layer.getCenter().y));
             droneHeight = null;
         }
         else if(!edit_mode)
@@ -606,13 +643,17 @@ public class DraftDirector {
     }
 
     public void removeMarker(Marker marker) {
+        if(undoredo){
+            StepByStepRedo.clear();
+            undoredo = false;
+        }
         Log.d(TAG, "removeMarker(Marker marker)");
         if (marker == null) //abstract "Marker" will call one time.
             return;
         if (renderableMap.containsKey(marker)) { //檢查Map是否有此marker，有則刪除
             if(marker.getClass() == AnchorMarker.class) {
                 firstTime = true;
-                ((AnchorMarker)marker).setRealDistance(0);
+                ((AnchorMarker)marker).setRealDistance(((AnchorMarker)marker).getPicRealDistance());
             }
             Log.d(TAG, "renderableMap contain!!");
             Renderable renderable = renderableMap.get(marker); //取得此marker的renderable
@@ -836,7 +877,7 @@ public class DraftDirector {
             readytoSave = false;
     }//清除所有標線、標籤
     private void doUndoTask() {
-
+        undoredo = true;
         Log.d(TAG, "EDIT_UNDO2====================================");
         if (!StepByStepUndo.isEmpty()) { //不為空
             if(readytoSave)
@@ -847,6 +888,7 @@ public class DraftDirector {
             switch (data.getCRUDstate()) {
                 case CREATE:
                     //do delete
+                    undoredo = false;
                     if (dataMarker instanceof LabelMarker) {
                         Log.d(TAG, "LabelMarker");
                         StepByStepRedo.add(new DataStepByStep(dataMarker, Selectable.CRUD.DELETE));
@@ -866,10 +908,11 @@ public class DraftDirector {
                         StepByStepRedo.add(new DataStepByStep(p, Selectable.CRUD.DELETE));
                         draft.removePath(p);
                     }
-
+                    undoredo = true;
                     break;
                 case UPDATE:
                     //Looking up old data
+                    undoredo = false;
                     if (dataMarker instanceof LabelMarker) {
                         Log.d(TAG, "Undo Update: LabelMarker");
                         Log.d(TAG, "historyLayerPositionsUndo.size(): " + dataMarker.historyLayerPositionsUndo.size());
@@ -929,6 +972,7 @@ public class DraftDirector {
                         }
 
                     }
+                    undoredo = true;
                     break;
                 case DELETE:
                     //do re-create()
@@ -947,15 +991,12 @@ public class DraftDirector {
                     break;
             }
         }
-
-
-
     }
 
 
     private void doRedoTask() {
+        undoredo = true;
         Log.d(TAG, "EDIT_REDO2====================================");
-
         if (!StepByStepRedo.isEmpty()) { //不為空
             if(readytoSave)
                 readytoSave = false;
@@ -965,6 +1006,7 @@ public class DraftDirector {
             switch (data.getCRUDstate()) {
                 case CREATE:
                     //do delete();
+                    undoredo = false;
                     StepByStepUndo.add(new DataStepByStep(dataMarker, Selectable.CRUD.DELETE));
                     if (dataMarker instanceof LabelMarker) {
                         Log.d(TAG, "LabelMarker");
@@ -977,17 +1019,15 @@ public class DraftDirector {
                         this.removeMarker( ((LinkMarker)dataMarker).getLink() );
                         this.removeMarker( dataMarker );
                     }
-
-
+                    undoredo = true;
                     break;
                 case UPDATE:
                     //Looking up old data in every marker
+                    undoredo = false;
                     if (dataMarker instanceof LabelMarker) {
                         Log.d(TAG, "Redo: Update: LabelMarker");
                         if (!dataMarker.historyLayerPositionsRedo.isEmpty()) {
-
                             this.removeMarker(dataMarker); //移除目前的marker，還原至前一位置
-
                             Position undoPositionRef = dataMarker.historyLayerPositionsRedo.pollLast();
                             Position undoPosition = new Position(undoPositionRef.x, undoPositionRef.y);
                             dataMarker.historyLayerPositionsUndo.addLast(undoPosition);
@@ -1043,8 +1083,8 @@ public class DraftDirector {
                             StepByStepUndo.add(new DataStepByStep(dataMarker, Selectable.CRUD.UPDATE));
                         }
 
-
                     }
+                    undoredo = true;
                     break;
                 case DELETE:
                     //do Re-create()
@@ -1210,6 +1250,10 @@ public class DraftDirector {
     }
 
     public void selectingMarker(Marker marker) {
+        if(undoredo){
+            StepByStepRedo.clear();
+            undoredo = false;
+        }
         this.markerSelecting = marker;
         if (this.markerSelecting != null)
             this.markerSelecting.selecting();
@@ -1273,6 +1317,7 @@ public class DraftDirector {
     }
     private void edge(){//邊界回彈功能
         if(birdview != null){
+            float toolbar=120;
             //邊界問題
             float birdviewHeight=birdview.getHeight()*this.draft.layer.getScale();
             float birdviewWidth=birdview.getWidth()*this.draft.layer.getScale();
@@ -1282,66 +1327,66 @@ public class DraftDirector {
             Log.d(TAG, "moveDraft: 圖width: "+birdviewWidth+"Height"+birdviewHeight+"// screenW"+screenWidth+"screenH"+screenHight);
             Log.d(TAG, "現在圖片中心位置"+ this.draft.layer.getCenterOffset().x+"_"+this.draft.layer.getCenterOffset().y);
 
-            if (birdviewHeight<screenHight && birdviewWidth<screenWidth){//圖片小於螢幕 則鎖在正中間
+            if (birdviewHeight<screenHight-toolbar*2 && birdviewWidth<screenWidth-toolbar*2){//圖片小於螢幕 則鎖在正中間
                 Position screenCenter = new Position(0,0);
                 this.draft.layer.moveLayerto(screenCenter);
             }else {//大於螢幕
 
-                if(birdviewHeight<screenHight){//長形圖
+                if(birdviewHeight<screenHight-toolbar*2){//長形圖
                     if (this.draft.layer.getCenterOffset().y!=0){
                         Position over = new Position(this.draft.layer.getCenterOffset().x, 0);
                         this.draft.layer.moveLayerto(over);
                     }
                     //圖片右邊回彈
-                    if (this.draft.layer.getCenterOffset().x + birdviewWidth / 2 < screenWidth / 2) {
-                        Position over = new Position(screenWidth / 2 - this.draft.layer.getCenterOffset().x - birdviewWidth / 2, 0);
+                    if (this.draft.layer.getCenterOffset().x + birdviewWidth / 2 < screenWidth / 2-toolbar) {
+                        Position over = new Position(screenWidth / 2-toolbar - this.draft.layer.getCenterOffset().x - birdviewWidth / 2, 0);
                         this.draft.layer.moveLayer(over);
                     }
                     //圖片左邊回彈
-                    if (this.draft.layer.getCenterOffset().x - birdviewWidth / 2 > -screenWidth / 2) {
+                    if (this.draft.layer.getCenterOffset().x - birdviewWidth / 2 > -screenWidth / 2+toolbar) {
 
-                        Position over = new Position(-screenWidth / 2 - this.draft.layer.getCenterOffset().x + birdviewWidth / 2, 0);
+                        Position over = new Position(-screenWidth / 2+toolbar - this.draft.layer.getCenterOffset().x + birdviewWidth / 2, 0);
                         this.draft.layer.moveLayer(over);
                     }}
 
 
-                if(birdviewWidth<screenWidth){//寬形圖
+              if(birdviewWidth<screenWidth-toolbar*2){//寬形圖
                     if (this.draft.layer.getCenterOffset().x!=0){
                         Position over = new Position(0, this.draft.layer.getCenterOffset().y);
                         this.draft.layer.moveLayerto(over);
                     }
                     //圖片下邊回彈
-                    if (this.draft.layer.getCenterOffset().y + birdviewHeight / 2 < screenHight / 2) {
-                        Position over = new Position(0, screenHight / 2 - this.draft.layer.getCenterOffset().y - birdviewHeight / 2);
+                    if (this.draft.layer.getCenterOffset().y + birdviewHeight / 2 < screenHight / 2-toolbar) {
+                        Position over = new Position(0, screenHight / 2-toolbar - this.draft.layer.getCenterOffset().y - birdviewHeight / 2);
                         this.draft.layer.moveLayer(over);
                     }
                     //圖片上邊回彈
-                    if (this.draft.layer.getCenterOffset().y - birdviewHeight / 2 > -screenHight / 2) {
-                        Position over = new Position(0, -screenHight / 2 - this.draft.layer.getCenterOffset().y + birdviewHeight / 2);
+                    if (this.draft.layer.getCenterOffset().y - birdviewHeight / 2 > -screenHight / 2+toolbar) {
+                        Position over = new Position(0, -screenHight / 2 +toolbar- this.draft.layer.getCenterOffset().y + birdviewHeight / 2);
                         this.draft.layer.moveLayer(over);
                     }
                 }
 
-                if (birdviewHeight>screenHight && birdviewWidth>screenWidth){//長寬都大於螢幕
+              if (birdviewHeight>screenHight-toolbar*2 && birdviewWidth>screenWidth-toolbar*2){//長寬都大於螢幕
                     //圖片右邊回彈
-                    if (this.draft.layer.getCenterOffset().x + birdviewWidth / 2 < screenWidth / 2) {
-                        Position over = new Position(screenWidth / 2 - this.draft.layer.getCenterOffset().x - birdviewWidth / 2, 0);
+                    if (this.draft.layer.getCenterOffset().x + birdviewWidth / 2 < screenWidth / 2-toolbar) {
+                        Position over = new Position(screenWidth / 2 -toolbar- this.draft.layer.getCenterOffset().x - birdviewWidth / 2, 0);
                         this.draft.layer.moveLayer(over);
                     }
                     //圖片左邊回彈
-                    if (this.draft.layer.getCenterOffset().x - birdviewWidth / 2 > -screenWidth / 2) {
+                    if (this.draft.layer.getCenterOffset().x - birdviewWidth / 2 > -screenWidth / 2+toolbar) {
 
-                        Position over = new Position(-screenWidth / 2 - this.draft.layer.getCenterOffset().x + birdviewWidth / 2, 0);
+                        Position over = new Position(-screenWidth / 2+toolbar - this.draft.layer.getCenterOffset().x + birdviewWidth / 2, 0);
                         this.draft.layer.moveLayer(over);
                     }
                     //圖片下邊回彈
-                    if (this.draft.layer.getCenterOffset().y + birdviewHeight / 2 < screenHight / 2) {
-                        Position over = new Position(0, screenHight / 2 - this.draft.layer.getCenterOffset().y - birdviewHeight / 2);
+                    if (this.draft.layer.getCenterOffset().y + birdviewHeight / 2 < screenHight / 2-toolbar) {
+                        Position over = new Position(0, screenHight / 2-toolbar - this.draft.layer.getCenterOffset().y - birdviewHeight / 2);
                         this.draft.layer.moveLayer(over);
                     }
                     //圖片上邊回彈
-                    if (this.draft.layer.getCenterOffset().y - birdviewHeight / 2 > -screenHight / 2) {
-                        Position over = new Position(0, -screenHight / 2 - this.draft.layer.getCenterOffset().y + birdviewHeight / 2);
+                    if (this.draft.layer.getCenterOffset().y - birdviewHeight / 2 > -screenHight / 2+toolbar) {
+                        Position over = new Position(0, -screenHight / 2+toolbar- this.draft.layer.getCenterOffset().y + birdviewHeight / 2);
                         this.draft.layer.moveLayer(over);
                     }
                 }
@@ -1351,8 +1396,14 @@ public class DraftDirector {
 
     }
 
-    private void showToast(String string, boolean is_short) {//顯示提示訊息
-        Toast.makeText(Muninn.getContext(), string, is_short ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+    private void showToast(String string) {//顯示提示訊息
+        int width = Muninn.getContext().getResources().getDisplayMetrics().widthPixels;
+        Toast toast = Toast.makeText(Muninn.getContext(), string, Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.TOP, 0,0);
+        LinearLayout linearLayout = (LinearLayout) toast.getView();
+        TextView messageTextView = (TextView) linearLayout.getChildAt(0);
+        messageTextView.setTextSize(width/40);
+        toast.show();
     }
 
     private File makeDirectory() {
@@ -1376,7 +1427,7 @@ public class DraftDirector {
                 //MD5 = MD5Encoder.getResult();
                 final File directory = makeDirectory();
                 if(directory == null)
-                    showToast("請開啟圖片", false);
+                    showToast("請開啟圖片");
                 else {
                     new AlertDialog.Builder(context)
                             .setTitle("簽名 請註記")
@@ -1397,7 +1448,7 @@ public class DraftDirector {
                                         bitmap.compress(Bitmap.CompressFormat.PNG, 100, output_stream);
                                         output_stream.flush();
                                         output_stream.close();
-                                        showToast("簽名儲存成功", true);
+                                        showToast("簽名儲存成功");
                                         signFiles.add(file);
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -1496,7 +1547,7 @@ public class DraftDirector {
 
     public void exportToZip() {//儲存至本地 用ZIP檔儲存
         if(birdview == null){
-            showToast("儲存失敗，請先開啟圖片", false);
+            showToast("儲存失敗，請先開啟圖片");
             return;
         }
         readytoSave = true;
@@ -1514,40 +1565,50 @@ public class DraftDirector {
                 ZipOutputStream zip_stream = new ZipOutputStream(new BufferedOutputStream(destination));
                 final int BUFFER = 256;
                 WriteDOMFileToZIP(data_file, zip_stream, BUFFER);
-                final Bitmap bitmap = draftRenderer.getBirdview();//標線圖片
-
-                WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
-                for(File file : signFiles) {
-                    Bitmap sign_bitmap = BitmapFactory.decodeFile(file.getPath());
-                    WriteBitmapToZIP(file.getName(), sign_bitmap, zip_stream, BUFFER, directory);
+                String birdViewFilename;
+                if(birdViewUri.getLastPathSegment().indexOf(":") != -1){
+                    birdViewFilename = birdViewUri.getLastPathSegment().substring(birdViewUri.getLastPathSegment().indexOf(":") + 1);
+                    Log.d("AAAAAAAAAA", birdViewUri.getLastPathSegment());
+                    WriteDOMFileToZIP(new File(Environment.getExternalStorageDirectory(), birdViewFilename), zip_stream, BUFFER);
+                }else {
+                    birdViewFilename = birdViewUri.getPath();
+                    WriteDOMFileToZIP(new File(birdViewFilename), zip_stream, BUFFER);
                 }
+                Log.d("AAAAAAAAAA", birdViewFilename);
+                //final Bitmap bitmap = draftRenderer.getBirdview();//標線圖片
+
+                //WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
+                //for(File file : signFiles) {
+                //    Bitmap sign_bitmap = BitmapFactory.decodeFile(file.getPath());
+                //    WriteBitmapToZIP(file.getName(), sign_bitmap, zip_stream, BUFFER, directory);
+                //}
 
                 zip_stream.close();
                 destination.close();
                 Muninn.soundPlayer.start();//使用裝置本身提示音
-                showToast("儲存成功", true);
+                showToast("儲存成功");
                 // 上傳雲端在這做。
                 UploadParams params = new UploadParams(directory.getPath()+"/"+filename,filename);
                 UploadTask uploadtask = new UploadTask();
                 if(params.isConnected()) {
                     if(!uploadtask.flag)
-                        showToast("上傳失敗", false);
+                        showToast("上傳失敗");
                     else {
                         uploadtask.execute(params);
-                        showToast("FTP上傳成功", false);
+                        showToast("FTP上傳成功");
                     }
                 }else
-                    showToast("上傳失敗，請檢查網路連線", false);
+                    showToast("上傳失敗，請檢查網路連線");
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
             }
         }else
-            showToast("儲存失敗", true);
+            showToast("儲存失敗");
     }
 
     public boolean unpackZip(Uri uri) {
-        showToast("壓縮檔讀取中", false);
+        showToast("壓縮檔讀取中");
         InputStream is;
         ZipInputStream zis;
         File directory;
@@ -1568,6 +1629,8 @@ public class DraftDirector {
             int count;
             while ((ze = zis.getNextEntry()) != null){
                 file_name = ze.getName();
+                if(file_name.indexOf("jpg") != -1)
+                    file_name = "birdview.jpg";
                 if (ze.isDirectory()) {
                     File fmd = new File(file, file_name);
                     fmd.mkdirs();
@@ -1591,7 +1654,7 @@ public class DraftDirector {
         Uri photo = Uri.fromFile(new File(directory.toString() + "/birdview.jpg"));
         setBirdviewImageByUri(photo);
         markerRestore();
-        showToast("讀取完畢", false);
+        showToast("讀取完畢");
         return true;
     }
 
