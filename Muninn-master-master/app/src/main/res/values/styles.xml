@@ -8,6 +8,7 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="popupMenuStyle">@style/myPopupMenuStyle</item>
         <item name="android:popupMenuStyle">@style/myPopupMenuStyle</item>
+        <item name="android:alertDialogStyle">@style/dialog</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -29,14 +30,29 @@
         <item name="android:textColor">#ffffff</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
     </style>
-    <style name="dialog" parent="@android:style/Theme.Dialog">
+    <style name="dialog" parent="@style/AlertDialog.AppCompat">
         <item name="android:textSize">40sp</item>
+        <item name="android:background">#80444444</item>
+        <item name="android:editTextColor">@android:color/white</item>
+        <item name="android:padding">3sp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
+        <item name="android:backgroundDimAmount">0.05</item>
+        <item name="android:shadowColor">#666666</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:shadowDx">10</item>
+        <item name="android:shadowDy">10</item>
     </style>
 
     <style name="myPopupMenuStyle" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:shadowColor">@color/popupwindow_background</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:shadowDx">5</item>
+        <item name="android:shadowDy">8</item>
         <item name="android:itemBackground">@drawable/popup_bg</item>
-        <item name="android:windowIsTranslucent">true</item>
         <item name="android:textSize">40sp</item>
     </style>
+
 </resources>

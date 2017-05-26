@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Environment;
@@ -13,15 +15,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.PopupMenu;
+import android.text.Html;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -42,6 +52,7 @@ public class MuninnActivity extends AppCompatActivity {
     public static int width = 0;
     private ContextThemeWrapper contextThemeWrapper;
     public static TextView message = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +76,7 @@ public class MuninnActivity extends AppCompatActivity {
         layout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(message != null) {
-                    if (message.getVisibility() == View.VISIBLE) {
-                        message.setVisibility(View.INVISIBLE);
-                    }
-                }
+                checkMessage();
                 return false;
             }
         });
@@ -77,6 +84,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 if(appInstalledOrNot("studio.bachelor.huginn")) {
                     Intent intent = getPackageManager().getLaunchIntentForPackage("studio.bachelor.huginn");
                     startActivity(intent);
@@ -88,13 +96,15 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.select_photo).setOnClickListener(new OnClickListener() {//選擇影像
             public void onClick(View view) {//選擇照片
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 if(DraftDirector.instance.getSaveState()) {
                     switchToGallery();
                     DraftDirector.instance.selectTool(currentTool);
                 }else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
                     builder.setTitle("確定離開")
-                            .setMessage("尚未儲存更新，確定離開？")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setMessage(Html.fromHtml("<font color='#ffffff'>尚未儲存更新<br>確定離開？</font>"))
                             .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -111,9 +121,17 @@ public class MuninnActivity extends AppCompatActivity {
                                 }
                             });
                     AlertDialog alertDialog = builder.create();
+                    Window window = alertDialog.getWindow();
+                    WindowManager.LayoutParams lp = window.getAttributes();
+                    lp.alpha = 0.7f;
+                    window.setAttributes(lp);
                     alertDialog.show();
                     TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
-                    textView.setTextSize(width / 40);
+                    textView.setTextSize(width / 55);
+                    Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                    pbutton.setTextColor(Color.WHITE);
+                    Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+                    nButton.setTextColor(Color.WHITE);
                 }
             }
         });
@@ -132,6 +150,7 @@ public class MuninnActivity extends AppCompatActivity {
         findViewById(R.id.setting).setOnClickListener(new OnClickListener() {
             public void onClick(View view) {//參數設定
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 switchToSetting();
             }
         });
@@ -151,6 +170,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//儲存至本地
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 showToast("開始儲存，靜候完成訊息。");
                 DraftDirector.instance.exportToZip();
             }
@@ -180,6 +200,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//標籤
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 showToast("點兩下新增標籤");
                 changeMode(currentTool, Toolbox.Tool.MARKER_TYPE_LABEL);
                 findViewById(R.id.label_button).setBackgroundResource(R.drawable.ic_text_2);
@@ -192,6 +213,8 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//自動標線
                 Muninn.mVibrator.vibrate(100);
+                v.clearAnimation();
+                checkMessage();
                 showToast("點兩下新增標線");
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_LINK);
                 findViewById(R.id.auto_button).setBackgroundResource(R.drawable.ic_distance_auto_2);
@@ -204,6 +227,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//標線
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 showToast("點兩下新增比例尺");
                 changeMode(currentTool, Toolbox.Tool.MAKER_TYPE_ANCHOR);
                 findViewById(R.id.line_button).setBackgroundResource(R.drawable.ic_distance_2);
@@ -216,6 +240,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//草稿線
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 changeMode(currentTool, Toolbox.Tool.PATH_MODE);
                 showToast("鉛筆功能");
                 findViewById(R.id.pen_button).setBackgroundResource(R.drawable.ic_pencil_2);
@@ -228,6 +253,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//取消復原
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 DraftDirector.instance.selectTool(Toolbox.Tool.EDIT_REDO);
 
             }
@@ -248,7 +274,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//復原
                 Muninn.mVibrator.vibrate(100);
-                
+                checkMessage();
                 DraftDirector.instance.selectTool(Toolbox.Tool.EDIT_UNDO);
             }
         });
@@ -268,6 +294,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//刪除特定標線標籤
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 //final PopupMenu popupmenu = new PopupMenu(MuninnActivity.this, findViewById(R.id.delete_button));
                 Context wrapper = new ContextThemeWrapper(context, R.style.myPopupMenuStyle);
                 PopupMenu popupmenu = new PopupMenu(wrapper, v);
@@ -280,7 +307,8 @@ public class MuninnActivity extends AppCompatActivity {
                                 Muninn.mVibrator.vibrate(100);
                                 AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
                                 builder.setTitle(R.string.sure_to_delete_line)
-                                        .setMessage(R.string.alert_clean_line)
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .setMessage(Html.fromHtml("<font color='#ffffff'>警告：<br>清除所有草稿線後<br>無法復原</font>"))
                                         .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
@@ -296,9 +324,18 @@ public class MuninnActivity extends AppCompatActivity {
                                             }
                                         });
                                 AlertDialog alertDialog = builder.create();
+                                Window window = alertDialog.getWindow();
+                                WindowManager.LayoutParams lp = window.getAttributes();
+                                lp.alpha = 0.7f;
+                                window.setAttributes(lp);
+                                //window.setBackgroundDrawableResource(R.drawable.rec_cir);
                                 alertDialog.show();
                                 TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
-                                textView.setTextSize(width / 40);
+                                textView.setTextSize(width / 55);
+                                Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                                pbutton.setTextColor(Color.WHITE);
+                                Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+                                nButton.setTextColor(Color.WHITE);
                                 break;
                             case R.id.clear_line:
                                 Muninn.mVibrator.vibrate(100);
@@ -336,6 +373,7 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {//拖曳模式
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 changeMode(currentTool, Toolbox.Tool.HAND_MOVE);
                 showToast("拖曳模式");
                 findViewById(R.id.move_mode).setBackgroundResource(R.drawable.ic_hand_2);
@@ -348,13 +386,15 @@ public class MuninnActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Muninn.mVibrator.vibrate(100);
+                checkMessage();
                 if(DraftDirector.instance.getSaveState()){
                     switchToZIPBrowsing();
                     DraftDirector.instance.selectTool(currentTool);
                 }else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
                     builder.setTitle("確定離開")
-                            .setMessage("尚未儲存更新，確定離開？")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setMessage(Html.fromHtml("<font color='#ffffff'>尚未儲存更新<br>確定離開？</font>"))
                             .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -370,10 +410,19 @@ public class MuninnActivity extends AppCompatActivity {
                                     Muninn.mVibrator.vibrate(100);
                                 }
                             });
+                    // instantiate the dialog with the custom Theme
                     AlertDialog alertDialog = builder.create();
+                    Window window = alertDialog.getWindow();
+                    WindowManager.LayoutParams lp = window.getAttributes();
+                    lp.alpha = 0.7f;
+                    window.setAttributes(lp);
                     alertDialog.show();
                     TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
-                    textView.setTextSize(width / 40);
+                    textView.setTextSize(width / 55);
+                    Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                    pbutton.setTextColor(Color.WHITE);
+                    Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+                    nButton.setTextColor(Color.WHITE);
                 }
             }
         });
@@ -405,9 +454,10 @@ public class MuninnActivity extends AppCompatActivity {
 
     public void ConfirmExit(){
         AlertDialog.Builder ad = new AlertDialog.Builder(contextThemeWrapper);
-        ad.setTitle("離開");
-        ad.setMessage("確定要離開?");
-        ad.setPositiveButton("是", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
+        ad.setTitle("確定離開？")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage(Html.fromHtml("<font color='#ffffff'>離開後將不會<br>儲存圖片</font>"))
+                .setPositiveButton("是", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
             public void onClick(DialogInterface dialog, int i) {
                 MuninnActivity.this.finish();//關閉activity
             }
@@ -417,15 +467,24 @@ public class MuninnActivity extends AppCompatActivity {
             }
         });
         AlertDialog alertDialog = ad.create();
+        Window window = alertDialog.getWindow();
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.alpha = 0.7f;
+        window.setAttributes(lp);
         alertDialog.show();
         TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
-        textView.setTextSize(width / 40);
+        textView.setTextSize(width / 55);
+        Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        pbutton.setTextColor(Color.WHITE);
+        Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+        nButton.setTextColor(Color.WHITE);
     }
     /*清除標線警告dialog*/
     private void ClearLineDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper);
         builder.setTitle(R.string.sure_to_delete_line)
-                .setMessage(R.string.alert_delete_line)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage(Html.fromHtml("<font color='#ffffff'>警告：<br>清除所有標線標籤<br>後無法復原</font>"))
                 .setPositiveButton(R.string.yes_to_delete, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -439,10 +498,18 @@ public class MuninnActivity extends AppCompatActivity {
                         Muninn.mVibrator.vibrate(100);
                     }
                 });
-        AlertDialog alertDialog = builder.create();
+        final AlertDialog alertDialog = builder.create();
+        Window window = alertDialog.getWindow();
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.alpha = 0.7f;
+        window.setAttributes(lp);
         alertDialog.show();
         TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
-        textView.setTextSize(width / 40);
+        textView.setTextSize(width / 55);
+        Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        pbutton.setTextColor(Color.WHITE);
+        Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+        nButton.setTextColor(Color.WHITE);
     }
 
     private void switchToGallery() {
@@ -477,8 +544,15 @@ public class MuninnActivity extends AppCompatActivity {
                 Uri uri = data.getData();
                 DraftDirector.instance.setBirdviewImageByUri(uri);
                 message = (TextView)findViewById(R.id.function_message);
-                message.setTextSize(width / 40);
+                message.setTextSize(width / 55);
                 message.setVisibility(View.VISIBLE);
+                final Animation animation = new AlphaAnimation(1, 0); // Change alpha from fully visible to invisible
+                animation.setDuration(500); // duration - half a second
+                animation.setInterpolator(new LinearInterpolator()); // do not alter animation rate
+                animation.setRepeatCount(Animation.INFINITE); // Repeat animation infinitely
+                animation.setRepeatMode(Animation.REVERSE);
+                final ImageButton btn = (ImageButton) findViewById(R.id.auto_button);
+                btn.startAnimation(animation);
                 /*Toast toast = Toast.makeText(getApplicationContext(), "請選擇功能編輯↓", Toast.LENGTH_SHORT);
                 toast.setGravity(Gravity.CENTER,0,0);
                 LinearLayout toastView = (LinearLayout) toast.getView();
@@ -559,7 +633,14 @@ public class MuninnActivity extends AppCompatActivity {
         toast.setGravity(Gravity.TOP, 0,0);
         LinearLayout linearLayout = (LinearLayout) toast.getView();
         TextView messageTextView = (TextView) linearLayout.getChildAt(0);
-        messageTextView.setTextSize(width/40);
+        messageTextView.setTextSize(width / 40);
         toast.show();
+    }
+    private void checkMessage(){
+        if(message != null) {
+            if (message.getVisibility() == View.VISIBLE) {
+                message.setVisibility(View.INVISIBLE);
+            }
+        }
     }
 }

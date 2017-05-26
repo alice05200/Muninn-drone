@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.preference.PreferenceManager;
 
+import studio.bachelor.draft.Draft;
 import studio.bachelor.draft.DraftDirector;
 import studio.bachelor.draft.utility.Position;
 import studio.bachelor.draft.utility.Renderable;
@@ -58,6 +59,10 @@ public class Line implements Renderable {
 
     @Override
     public void onDraw(Canvas canvas) {
+        if(DraftDirector.instance.getMarkerHold() != null)
+            paint.setAlpha(130);
+        else
+            paint.setAlpha(255);
         canvas.drawLine((float)head.x, (float)head.y, (float)tail.x, (float)tail.y, paint);
     }
 }

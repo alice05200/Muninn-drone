@@ -8,9 +8,10 @@
         android:entries="@array/size_name"
         android:entryValues="@array/size_name" />
 
-    <EditTextPreference
+    <ListPreference
         android:defaultValue="@string/default_marker_selection_radius"
         android:key="@string/key_marker_selection_radius"
         android:title="標記選擇提示半徑"
-        android:inputType="numberDecimal" />
+        android:entries="@array/size_name"
+        android:entryValues="@array/size_name" />
 </PreferenceScreen>

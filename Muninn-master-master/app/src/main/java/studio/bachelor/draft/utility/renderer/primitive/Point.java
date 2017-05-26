@@ -53,6 +53,10 @@ public class Point implements Renderable {
 
     @Override
     public void onDraw(Canvas canvas) {
+        if(DraftDirector.instance.getMarkerHold() != null)
+            paint.setAlpha(100);
+        else
+            paint.setAlpha(180);
         canvas.drawPoint((float)position.x, (float)position.y, paint);
     }
 }

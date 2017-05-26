@@ -14,13 +14,13 @@
 
 
     <string name="sure_to_delete_line">確定清除</string>
-    <string name="alert_delete_line">警告 : 清除所有標線標籤後無法復原。</string>
-    <string name="alert_clean_line">警告 : 清除所有草稿線後無法復原。</string>
+    <string name="alert_delete_line">警告：\n清除所有標線標籤後無法復原</string>
+    <string name="alert_clean_line">警告：\n清除所有草稿線後無法復原</string>
     <string name="not_to_delete_line">取消</string>
     <string name="yes_to_delete">確定</string>
 
     <string name="new_mark">確定重設</string>
-    <string name="alert_new_mark">警告 : 重新設定比例尺後將會更改所有標線數值。</string>
+    <string name="alert_new_mark">警告：\n重新設定比例尺將更改所有標線數值</string>
     <string name="not_new_mark">取消</string>
     <string name="yes_new_mark">確定</string>
 
@@ -33,7 +33,7 @@
     <string name="default_marker_point_radius">10.0</string>
     <string name="default_marker_line_width">1.0</string>
     <string name="default_marker_text_size">20.0</string>
-    <string name="default_marker_selection_radius">10.0</string>
+    <string name="default_marker_selection_radius">1.0</string>
 
     <string name="key_marker_point_color">marker_point_color</string>
     <string name="default_marker_point_color">#000000</string>
