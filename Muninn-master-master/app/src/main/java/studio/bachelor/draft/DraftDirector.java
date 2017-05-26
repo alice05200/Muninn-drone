@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.net.ConnectivityManager;
@@ -19,10 +20,14 @@ import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
+import android.text.Html;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -124,7 +129,7 @@ public class DraftDirector {
     private Bitmap birdview;
     private BitmapMD5Encoder MD5Encoder;
     private Thread MD5EncoderThread;
-    private List<File> signFiles = new LinkedList<File>();
+    //private List<File> signFiles = new LinkedList<File>();
     private Toolbox.Tool currentMode = Toolbox.Tool.HAND_MOVE, preMode = Toolbox.Tool.HAND_MOVE;
     private MarkerXMLHandler markerXMLHandler = new MarkerXMLHandler();
 
@@ -189,12 +194,15 @@ public class DraftDirector {
     }
 
     public void cleanBirdviewLine(){
-        signFiles.clear();
+        //signFiles.clear();
         clearAllLine();
         draft.clearPaths();
         draft.layer.setScale(1);
         edit_mode = false;
         Position screenCenter = new Position(0,0);
+        readytoSave = true;
+        AnchorMarker.getInstance().setRealDistance(0);
+        AnchorMarker.getInstance().setPicDisPos(0, null, null);
         this.draft.layer.moveLayerto(screenCenter);//設定位置到中間
         if(birdview != null) {
             birdview = null;
@@ -202,7 +210,6 @@ public class DraftDirector {
             draftRenderer.setBirdview(birdview);
             draft.setWidth(1);
             draft.setHeight(1);
-            readytoSave = true;
         }
 
     }
@@ -363,7 +370,8 @@ public class DraftDirector {
         AlertDialog.Builder dialog_builder = new AlertDialog.Builder(contextThemeWrapper);
         dialog_builder
                 .setTitle(R.string.new_mark)
-                .setMessage(R.string.alert_new_mark)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage(Html.fromHtml("<font color='#ffffff'>警告：<br>重新設定比例尺將更改所有標線數值</font>"))
                 .setPositiveButton("確定", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         Muninn.mVibrator.vibrate(100);
@@ -377,6 +385,10 @@ public class DraftDirector {
                     }
                 });
         AlertDialog alertDialog = dialog_builder.create();
+        Window window = alertDialog.getWindow();
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.alpha = 0.7f;
+        window.setAttributes(lp);
         alertDialog.show();
         TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
         textView.setTextSize(MuninnActivity.width / 40);
@@ -391,6 +403,8 @@ public class DraftDirector {
         Log.d("LabelMarker position", "x:" + position.x + ", y:" + position.y);
         if(!edit_mode) {
             final EditText edit_text = new EditText(context);
+            edit_text.setTextSize(MuninnActivity.width / 55);
+            edit_text.setTextColor(Color.WHITE);
             ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, R.style.dialog);
             AlertDialog.Builder dialog_builder = new AlertDialog.Builder(contextThemeWrapper);
             dialog_builder.setCancelable(false);
@@ -414,9 +428,17 @@ public class DraftDirector {
                         }
                     });
             AlertDialog alertDialog = dialog_builder.create();
+            Window window = alertDialog.getWindow();
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.alpha = 0.7f;
+            window.setAttributes(lp);
             alertDialog.show();
             TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
             textView.setTextSize(MuninnActivity.width / 40);
+            Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            pbutton.setTextColor(Color.WHITE);
+            Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+            nButton.setTextColor(Color.WHITE);
                 //marker.setSizeColor("" +  Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color), Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color));
         }else {
             ((LabelMarker) marker).setLabel(((LabelMarker) markerXMLHandler.getMarkers().get(i)).getLabel());
@@ -509,8 +531,10 @@ public class DraftDirector {
         }
 
         if(droneHeight != null){
-            double realD = Double.parseDouble(droneHeight) * Math.tan(droneFOV / 2 / 180 * Math.PI) * 2;
-            realD = realD * 16 / Math.pow(337.0, 0.5);
+            double realD = Double.parseDouble(droneHeight) * Math.tan(droneFOV / 2 / 180 * Math.PI);
+            //double realDV = Double.parseDouble(droneHeight) * Math.tan(droneFOV / 2.3 / 2 / 180 * Math.PI);
+            //double realD = Math.pow((realDH * realDH + realDV * realDV), 0.5);
+            realD = realD * 16 / Math.pow(337.0, 0.5) * 2;
             realD = (double)(Math.round(realD * 1000000)) / 1000000;
             ((AnchorMarker) marker).setRealDistance(realD);
             AnchorMarker.historyDistancesUndo.addLast(realD);
@@ -520,7 +544,8 @@ public class DraftDirector {
         }else if(!edit_mode) {
             final EditText edit_text = new EditText(context);
             edit_text.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-
+            edit_text.setTextSize(MuninnActivity.width / 55);
+            edit_text.setTextColor(Color.WHITE);
             ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, R.style.dialog);
             final AlertDialog.Builder dialog_builder = new AlertDialog.Builder(contextThemeWrapper);
             dialog_builder.setCancelable(false);
@@ -541,9 +566,15 @@ public class DraftDirector {
                         }
                     });
             AlertDialog alertDialog = dialog_builder.create();
+            Window window = alertDialog.getWindow();
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.alpha = 0.7f;
+            window.setAttributes(lp);
             alertDialog.show();
             TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
             textView.setTextSize(MuninnActivity.width / 40);
+            Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            pbutton.setTextColor(Color.WHITE);
         }else {
             ((AnchorMarker) marker).setRealDistance(((AnchorMarker) markerXMLHandler.getMarkers().get(i)).getRealDistance());
             AnchorMarker.historyDistancesUndo.addLast(((AnchorMarker) markerXMLHandler.getMarkers().get(i)).getRealDistance());
@@ -858,7 +889,7 @@ public class DraftDirector {
     private void clearAllLine(){
         for(Marker marker : draft.layer.markerManager.markers){
             if(marker.getClass() == AnchorMarker.class)
-                ((AnchorMarker)marker).setRealDistance(0);
+                ((AnchorMarker)marker).setRealDistance(((AnchorMarker)marker).getPicRealDistance());
         }
         renderableMap.clear();
         rendererManager.renderObjects.clear();
@@ -1259,6 +1290,9 @@ public class DraftDirector {
             this.markerSelecting.selecting();
     }
 
+    public Marker getMarkerHold(){
+        return markerHold;
+    }
     public void setMarkerType(Type type) {
         if (type.toString().contains("Marker"))
            this.markerType = type;
@@ -1418,7 +1452,7 @@ public class DraftDirector {
         return new_directory;
     }
 
-    public void showSignPad(Context context) {//簽名
+    /*public void showSignPad(Context context) {//簽名
         final SignPad signpad = new SignPad(Muninn.getContext());
         try {
             //String MD5 = "";
@@ -1464,7 +1498,7 @@ public class DraftDirector {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     public File exportToDOM(File zip_directory) {
         File file = new File(zip_directory, "data.xml");
@@ -1498,7 +1532,11 @@ public class DraftDirector {
             byte data[] = new byte[BUFFER];
             FileInputStream file_input = new FileInputStream(DOM_file);
             BufferedInputStream origin = new BufferedInputStream(file_input, BUFFER);
-            ZipEntry entry = new ZipEntry(DOM_file.getName());
+            ZipEntry entry;
+            if(DOM_file.getName().indexOf(".jpg") != -1)
+                entry = new ZipEntry("birdview.jpg");
+            else
+                entry = new ZipEntry(DOM_file.getName());
             zip_stream.putNextEntry(entry);
             int count;
             while ((count = origin.read(data, 0, BUFFER)) != -1) {

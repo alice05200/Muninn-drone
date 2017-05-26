@@ -15,7 +15,7 @@ import studio.bachelor.draft.utility.Position;
 public class AnchorMarker extends LinkMarker implements MapStringSupport {
     static private final AnchorMarker instance = new AnchorMarker();
     static public AnchorMarker getInstance() {return instance;}
-    private double realDistance, picRealDistance;
+    private double realDistance, picRealDistance = 0;
     private Position picPositionA = null, picPositionB = null;
     public static LinkedList<Double> historyDistancesUndo = new LinkedList<Double>();
     public static LinkedList<Double> historyDistancesRedo = new LinkedList<Double>();
@@ -31,10 +31,11 @@ public class AnchorMarker extends LinkMarker implements MapStringSupport {
     }
 
     public double getScale() {
-        if(realDistance != picRealDistance)
-            return realDistance / position.getDistanceTo(this.link.position);
-        else
+        if(picPositionA != null && picPositionB != null && picRealDistance == realDistance)
             return picRealDistance / picPositionA.getDistanceTo(picPositionB);
+        else
+            return realDistance / position.getDistanceTo(this.link.position);
+
     }
 
     public void setRealDistance(double real_distance) {

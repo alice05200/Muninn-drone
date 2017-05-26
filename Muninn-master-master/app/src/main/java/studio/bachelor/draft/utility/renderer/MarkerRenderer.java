@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.LinkedList;
@@ -57,6 +58,13 @@ public class MarkerRenderer implements Renderable {
         }
 
         if(reference != null) {
+            selectionWidth = Muninn.getSizeSetting(R.string.key_marker_selection_radius, R.string.default_marker_selection_radius);
+            String color = Muninn.getColorSetting(R.string.key_marker_selecting_color, R.string.default_marker_selecting_color);
+            selectingColor = Color.parseColor(color);
+            color = Muninn.getColorSetting(R.string.key_marker_selected_color, R.string.default_marker_selected_color);
+            selectedColor = Color.parseColor(color);
+            paint.setStrokeWidth(selectionWidth * 5);
+
             switch (reference.getSelectionState()) {
                 case SELECTING:
                     paint.setColor(selectingColor);
