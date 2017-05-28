@@ -12,13 +12,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class SplashViewActivity extends Activity {
-
+    Thread thread1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_view);
         final Animation animationFadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-        Thread thread1 = new Thread(){
+        thread1 = new Thread(){
             @Override
             public void run() {
                 try {
@@ -62,5 +62,12 @@ public class SplashViewActivity extends Activity {
                 finish();
             }
         });*/
+    }
+
+    @Override
+    public void onBackPressed() {
+        thread1.interrupt();
+        finish();
+        super.onBackPressed();
     }
 }

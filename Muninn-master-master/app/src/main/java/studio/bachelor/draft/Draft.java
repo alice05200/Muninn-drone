@@ -268,6 +268,26 @@ public class Draft{
         Element lines = document.createElement("lines");
         Element labels = document.createElement("labels");
         int labelNum = 0, lineNum = 0;
+        boolean haveAnchor = false;
+        for(Marker marker : layer.markerManager.markers) {
+            if(marker.getClass() == AnchorMarker.class) {
+                haveAnchor = true;
+                break;
+            }
+        }
+        if(!haveAnchor && AnchorMarker.getInstance().getPicRealDistance() != 0){
+            Marker marker = AnchorMarker.getInstance();
+            marker.setSizeColor("7", "#ff0000", "#ffffff");
+            Marker linked = AnchorMarker.getInstance().getLink();
+            linked.setSizeColor(marker.getSize(),
+                    marker.getColor(),
+                    marker.getText_color());
+            ((AnchorMarker) marker).setRealDistance(((AnchorMarker) marker).getPicRealDistance());
+            marker.position.set(new Position(-getWidth() / 2 + layer.getCenter().x, getHeight() / 2 + layer.getCenter().y));
+            linked.position.set(new Position(getWidth() / 2 + layer.getCenter().x, getHeight() / 2 + layer.getCenter().y));
+            addMarker(marker);
+            addMarker(linked);
+        }
         for(Marker marker : layer.markerManager.markers) {
             Node marker_node = createMarkerNodeWithLayerScale(marker, document, labelNum);
             markers.appendChild(marker_node);

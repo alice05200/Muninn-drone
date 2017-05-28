@@ -467,17 +467,21 @@ public class MuninnActivity extends AppCompatActivity {
             }
         });
         AlertDialog alertDialog = ad.create();
-        Window window = alertDialog.getWindow();
-        WindowManager.LayoutParams lp = window.getAttributes();
-        lp.alpha = 0.7f;
-        window.setAttributes(lp);
-        alertDialog.show();
-        TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
-        textView.setTextSize(width / 55);
-        Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
-        pbutton.setTextColor(Color.WHITE);
-        Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
-        nButton.setTextColor(Color.WHITE);
+        if(!DraftDirector.instance.getSaveState()) {
+            Window window = alertDialog.getWindow();
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.alpha = 0.7f;
+            window.setAttributes(lp);
+            alertDialog.show();
+            TextView textView = (TextView) alertDialog.findViewById(android.R.id.message);
+            textView.setTextSize(width / 55);
+            Button pbutton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            pbutton.setTextColor(Color.WHITE);
+            Button nButton = alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+            nButton.setTextColor(Color.WHITE);
+        }else{
+            MuninnActivity.this.finish();
+        }
     }
     /*清除標線警告dialog*/
     private void ClearLineDialog(){

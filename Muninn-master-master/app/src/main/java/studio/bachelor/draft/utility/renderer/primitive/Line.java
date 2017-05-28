@@ -59,10 +59,7 @@ public class Line implements Renderable {
 
     @Override
     public void onDraw(Canvas canvas) {
-        if(DraftDirector.instance.getMarkerHold() != null)
-            paint.setAlpha(130);
-        else
-            paint.setAlpha(255);
+
         canvas.drawLine((float)head.x, (float)head.y, (float)tail.x, (float)tail.y, paint);
     }
 }
