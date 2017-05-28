@@ -13,9 +13,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 import studio.bachelor.draft.Draft;
+import studio.bachelor.draft.DraftDirector;
+import studio.bachelor.draft.marker.AnchorMarker;
+import studio.bachelor.draft.marker.ControlMarker;
+import studio.bachelor.draft.marker.LabelMarker;
+import studio.bachelor.draft.marker.LinkMarker;
 import studio.bachelor.draft.marker.Marker;
+import studio.bachelor.draft.marker.MeasureMarker;
 import studio.bachelor.draft.utility.Renderable;
 import studio.bachelor.draft.utility.renderer.layer.Layer;
+import studio.bachelor.draft.utility.renderer.primitive.Line;
+import studio.bachelor.draft.utility.renderer.primitive.Point;
 import studio.bachelor.muninn.Muninn;
 import studio.bachelor.muninn.R;
 
@@ -54,6 +62,33 @@ public class MarkerRenderer implements Renderable {
     public void onDraw(Canvas canvas) {
         reference.update();
         for(Renderable primitive : primitives) {
+            if(primitive.getClass() == Line.class && reference.getClass() != LabelMarker.class){
+                switch (reference.getSelectionState()) {
+                    case SELECTED:
+                        ((Line)primitive).paint.setAlpha(130);
+                        break;
+                    default:
+                        switch (((LinkMarker)reference).getLink().getSelectionState()) {
+                            case SELECTED:
+                                ((Line)primitive).paint.setAlpha(130);
+                                break;
+                            default:
+                                ((Line)primitive).paint.setAlpha(255);
+                                break;
+                        }
+                        break;
+                }
+
+            }else if(primitive.getClass() == Point.class){
+                switch (reference.getSelectionState()) {
+                    case SELECTED:
+                        ((Point)primitive).paint.setAlpha(100);
+                        break;
+                    default:
+                        ((Point)primitive).paint.setAlpha(180);
+                        break;
+                }
+            }
             primitive.onDraw(canvas);
         }
 

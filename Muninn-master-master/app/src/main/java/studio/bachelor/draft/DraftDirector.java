@@ -1533,7 +1533,7 @@ public class DraftDirector {
             FileInputStream file_input = new FileInputStream(DOM_file);
             BufferedInputStream origin = new BufferedInputStream(file_input, BUFFER);
             ZipEntry entry;
-            if(DOM_file.getName().indexOf(".jpg") != -1)
+            if(DOM_file.getName().toLowerCase().indexOf(".jpg") != -1)
                 entry = new ZipEntry("birdview.jpg");
             else
                 entry = new ZipEntry(DOM_file.getName());
