@@ -19,7 +19,7 @@ public class Point implements Renderable {
     public final Paint paint = new Paint();
 
     {
-        radius = Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width) * 5;
+        radius = Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width) * 5 / 3;
         String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color);
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
@@ -38,7 +38,7 @@ public class Point implements Renderable {
 
     public Point(Position position, float size, String color){
         this.position = position;
-        radius = size * 5;
+        radius = size * 5 / 3;
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setColor(Color.parseColor(color));

@@ -23,7 +23,7 @@ public class Line implements Renderable {
     public final Paint paint = new Paint();
 
     {
-        width = Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width) * 5;
+        width = Muninn.getSizeSetting(R.string.key_marker_line_width, R.string.default_marker_line_width) * 5 / 3;
         String color = Muninn.getColorSetting(R.string.key_marker_line_color, R.string.default_marker_line_color);
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
@@ -44,7 +44,7 @@ public class Line implements Renderable {
     public Line(Position head, Position tail, float size, String color) {
         this.head = head;
         this.tail = tail;
-        width = size * 5;
+        width = size * 5 / 3;
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setColor(Color.parseColor(color));
