@@ -1533,7 +1533,7 @@ public class DraftDirector {
             FileInputStream file_input = new FileInputStream(DOM_file);
             BufferedInputStream origin = new BufferedInputStream(file_input, BUFFER);
             ZipEntry entry;
-            if(DOM_file.getName().toLowerCase().indexOf(".jpg") != -1)
+            if(DOM_file.getName().toLowerCase().indexOf(".xml") == -1)
                 entry = new ZipEntry("birdview.jpg");
             else
                 entry = new ZipEntry(DOM_file.getName());
@@ -1553,8 +1553,10 @@ public class DraftDirector {
         if (bitmap != null) {
             try {
                 File image_file;
-                if(filename.lastIndexOf(".png") == -1)
+                if(filename.lastIndexOf(".png") == -1) {
                     image_file = new File(zip_directory, filename + ".jpg");
+                    Log.d("AAAAAAAAAAB", "SSSSSSSSSSSSSS");
+                }
                 else {
                     File temp = new File(zip_directory, this.filename);
                     image_file = new File(temp, filename);
@@ -1567,8 +1569,10 @@ public class DraftDirector {
                 FileInputStream file_input = new FileInputStream(image_file);
                 BufferedInputStream origin = new BufferedInputStream(file_input, BUFFER);
                 ZipEntry entry;
-                if(filename.lastIndexOf(".png") == -1)
+                if(filename.lastIndexOf(".png") == -1) {
                     entry = new ZipEntry(filename + ".jpg");
+                    Log.d("AAAAAAAAAAB", "SSSSSSSSSSSSSS");
+                }
                 else
                     entry = new ZipEntry(filename);
                 zip_stream.putNextEntry(entry);
@@ -1606,13 +1610,20 @@ public class DraftDirector {
                 String birdViewFilename;
                 if(birdViewUri.getLastPathSegment().indexOf(":") != -1){
                     birdViewFilename = birdViewUri.getLastPathSegment().substring(birdViewUri.getLastPathSegment().indexOf(":") + 1);
-                    Log.d("AAAAAAAAAA", birdViewUri.getLastPathSegment());
+                    Log.d("AAAAAAAAAAB", birdViewUri.getLastPathSegment());
                     WriteDOMFileToZIP(new File(Environment.getExternalStorageDirectory(), birdViewFilename), zip_stream, BUFFER);
                 }else {
                     birdViewFilename = birdViewUri.getPath();
-                    WriteDOMFileToZIP(new File(birdViewFilename), zip_stream, BUFFER);
+                    Log.d("AAAAAAAAAAB", birdViewUri.getPath());
+                    File pic = new File(birdViewFilename);
+                    if(!pic.exists()) {
+                        //showToast("儲存失敗");
+                        final Bitmap bitmap = draftRenderer.getBirdview();//標線圖片
+                        WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
+                    }
+                    else
+                        WriteDOMFileToZIP(new File(birdViewFilename), zip_stream, BUFFER);
                 }
-                Log.d("AAAAAAAAAA", birdViewFilename);
                 //final Bitmap bitmap = draftRenderer.getBirdview();//標線圖片
 
                 //WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
@@ -1674,8 +1685,6 @@ public class DraftDirector {
                     fmd.mkdirs();
                     continue;
                 }
-                if(file_name.lastIndexOf("signature") != -1)
-                    continue;
                 FileOutputStream fout = new FileOutputStream(new File(directory, file_name));
                 while ((count = zis.read(buffer)) != -1){
                     fout.write(buffer, 0, count);

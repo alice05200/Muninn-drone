@@ -51,7 +51,6 @@ public class FTPUtils {
         this.FTPPort = 21;
         this.UserName =UserName;
         this.UserPassword = UserPassword;
-        Log.d("AAAAAAA", "IP" + this.FTPUrl + "Name" + this.UserName + "Pass" + this.UserPassword);
 
         int reply;
 
@@ -135,7 +134,7 @@ public class FTPUtils {
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);//圖片
 
             Date current_time = new Date();
-            SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMdd");
+            SimpleDateFormat simple_date_format = new SimpleDateFormat("yyyyMMddHH");
             String filename = simple_date_format.format(current_time);
             mkdir_ftp(filename);
             cd(filename);

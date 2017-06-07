@@ -52,7 +52,7 @@ public class Text implements Renderable {
         position = new Position();
         this.string = null;
         mapString = string;
-        textSize =  size * 10 + 10;
+        textSize =  size * 10 / 3 + 10;
         paint.setColor(Color.parseColor(color));
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
@@ -69,7 +69,7 @@ public class Text implements Renderable {
         this.position = position;
         this.string = null;
         mapString = string;
-        textSize = size * 10 + 10;
+        textSize = size * 10 / 3 + 10;
         paint.setColor(Color.parseColor(color));
         paint.setAntiAlias(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
