@@ -1608,10 +1608,17 @@ public class DraftDirector {
                 final int BUFFER = 256;
                 WriteDOMFileToZIP(data_file, zip_stream, BUFFER);
                 String birdViewFilename;
-                if(birdViewUri.getLastPathSegment().indexOf(":") != -1){
+                /*if(birdViewUri.getLastPathSegment().indexOf(":") != -1){
                     birdViewFilename = birdViewUri.getLastPathSegment().substring(birdViewUri.getLastPathSegment().indexOf(":") + 1);
                     Log.d("AAAAAAAAAAB", birdViewUri.getLastPathSegment());
-                    WriteDOMFileToZIP(new File(Environment.getExternalStorageDirectory(), birdViewFilename), zip_stream, BUFFER);
+                    File pic = new File(Environment.getExternalStorageDirectory(), birdViewFilename);
+                    if(!pic.exists()) {
+                        //showToast("儲存失敗");
+                        final Bitmap bitmap = draftRenderer.getBirdview();//標線圖片
+                        WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
+                    }
+                    else
+                        WriteDOMFileToZIP(pic,  zip_stream, BUFFER);
                 }else {
                     birdViewFilename = birdViewUri.getPath();
                     Log.d("AAAAAAAAAAB", birdViewUri.getPath());
@@ -1623,7 +1630,7 @@ public class DraftDirector {
                     }
                     else
                         WriteDOMFileToZIP(new File(birdViewFilename), zip_stream, BUFFER);
-                }
+                }*/
                 //final Bitmap bitmap = draftRenderer.getBirdview();//標線圖片
 
                 //WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
@@ -1632,6 +1639,9 @@ public class DraftDirector {
                 //    WriteBitmapToZIP(file.getName(), sign_bitmap, zip_stream, BUFFER, directory);
                 //}
 
+                final Bitmap bitmap = draftRenderer.getDraftBitmap();//標線圖片
+
+                WriteBitmapToZIP("birdview", bitmap, zip_stream, BUFFER, directory);
                 zip_stream.close();
                 destination.close();
                 Muninn.soundPlayer.start();//使用裝置本身提示音

@@ -3,6 +3,7 @@ package studio.bachelor.draft.utility.renderer;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
@@ -33,8 +34,9 @@ public class DraftRenderer implements Renderable {
 
     { //path會依據Paint的設定，呈現不同線條
         pathPaint.setStrokeCap(Paint.Cap.ROUND);
-        pathPaint.setStrokeWidth(5.0f);
+        pathPaint.setStrokeWidth(40.0f);
         pathPaint.setStyle(Paint.Style.STROKE);
+        pathPaint.setColor(Color.parseColor("#ff0000"));
     }
 
     public DraftRenderer(Draft draft) {
@@ -87,7 +89,6 @@ public class DraftRenderer implements Renderable {
                  List<Path> paths = draft.getPaths();
                  for (Path path : paths) //show all the gesture paths
                      tC.drawPath(path, pathPaint);
-                 Toast.makeText(Muninn.getContext(), "草稿線儲存成功", Toast.LENGTH_SHORT).show();
                  return bmp;
              } else if (draft.getPaths().isEmpty()) {
                      return null;
