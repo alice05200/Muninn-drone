@@ -51,7 +51,7 @@
     <string name="default_marker_selected_color">#aa0000</string>
 
     <string name="key_FTP_upload_IP_address">FTP_upload_IP_address</string>
-    <string name="default_FTP_upload_IP_address">140.118.175.110</string>
+    <string name="default_FTP_upload_IP_address">140.118.127.153</string>
 
     <string name="key_FTP_upload_username">FTP_upload_username</string>
     <string name="default_FTP_upload_username">lailai</string>
